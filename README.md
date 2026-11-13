@@ -58,3 +58,54 @@ AI-13-CRM-Duplicate-Detection-and-Entity-/
 ├── docker-compose.yml                  # Cấu hình chạy PostgreSQL bằng Docker
 └── README.md                           # Tài liệu hướng dẫn chung cho cả nhóm
 ```
+
+---
+
+## 3. Cách chạy nhanh (Windows, Git Bash)
+
+Yêu cầu: Git, Python 3.12. Docker Desktop chỉ cần nếu muốn dùng PostgreSQL.
+
+```bash
+git clone <URL-REPO>
+cd <TÊN-REPO>
+python -m venv venv
+source venv/Scripts/activate        # PowerShell: venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn main:app --reload           # hoặc: python main.py (nếu main.py đã có uvicorn.run)
+```
+
+Mở http://127.0.0.1:8000/docs để xem và thử API. Mặc định hệ thống tự tạo SQLite tại `data/songnhat_crm.db`. Chạy kiểm thử: `pytest`.
+
+> Người phụ trách `main.py` và `database.py` kiểm tra lại các lệnh trên trên một máy sạch rồi cập nhật nếu khác.
+
+---
+
+## 4. Giao việc tuần 3 theo Jira
+
+| Jira | Việc | Thư mục / file làm việc |
+|---|---|---|
+| KAN-13 [PM] | Quản lý phạm vi, tiến độ, Jira và Git | `README.md`, Jira |
+| KAN-14 [BA] | Đặc tả nghiệp vụ cho bản thử nghiệm đầu tiên | `docs/business_requirements/` |
+| KAN-15 [AI] | Khớp chính xác và tạo cặp ứng viên | `backend/services/matcher.py` |
+| KAN-16 [DATA] | Đọc CSV, kiểm tra, chuẩn hóa cơ bản | `backend/services/intake.py`, `normalizer.py`, `data/sample_csv/` |
+| KAN-17 [BE] | API tiếp nhận dữ liệu và tra cứu bản ghi nguồn | `backend/api/routes.py`, `schemas.py` |
+| [FE] | Giao diện danh sách bản ghi và cặp nghi trùng | `frontend/index.html` |
+
+Thiết kế giao diện mẫu (KAN-8) nằm ở `docs/ui_designs/crm_dashboard_prototype.html`.
+
+---
+
+## 5. Quy tắc làm việc chung
+
+- Không push thẳng lên `main`. Mỗi task Jira một nhánh `feature/KAN-xx-ten-ngan`, mở Pull Request, **người khác duyệt** rồi mới merge.
+- Thẻ Jira: mở PR thì chuyển **In Review**, merge xong mới chuyển **Done**.
+- Chi tiết xem `CONTRIBUTING.md`.
+- Repo **public**: chỉ dùng dữ liệu mẫu do nhóm tự tạo (tên, SĐT, mã số thuế đều giả). Không commit `.env`, `venv/`, `__pycache__/`, `data/*.db`.
+
+---
+
+## 6. Dữ liệu mẫu và đáp án
+
+- `data/sample_csv/ground_truth_pairs.csv` ghi đáp án các cặp đã gán nhãn để đo precision và recall. Cột: `pair_id,record_a,record_b,label,note`.
+- `label` nhận một trong bốn giá trị: `duplicate` (cùng thực thể), `related` (liên quan nhưng khác nhau), `distinct` (khác nhau), `insufficient` (chưa đủ bằng chứng).
+- Phân quyền và quy tắc không tự duyệt: `backend/security.py`.
