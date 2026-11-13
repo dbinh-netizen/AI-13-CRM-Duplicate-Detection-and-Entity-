@@ -8,9 +8,17 @@
 - Mở Pull Request vào `main`, tên `[KAN-15] ...`. **Người khác duyệt, không tự duyệt PR của mình** (đúng tinh thần RFP REV 03).
 
 ## 2. Jira
-- Bắt đầu làm: To Do → In Progress. Mở PR: sang **In Review** (dán link PR vào thẻ).
-- PR đã merge vào `main`: sang **Done**. Không có code hay tài liệu trên `main` thì không chuyển Done.
-- Tên task: `[W03][ROLE] Việc cần làm`. ROLE là BA, PM, DATA, AI, BE, FE hoặc QA.
+- Mỗi tuần PM tạo thẻ mới tên `[Wxx][ROLE] Việc cần làm` (ROLE: PM, BA, DB, DATA, AI, BE, FE, QA). Danh sách việc nằm trên Jira, **không ghi vào README**.
+- Bắt đầu làm: To Do → In Progress. Mở PR: sang **In Review** (dán link PR vào thẻ). PR đã merge vào `main`: sang **Done**. Không có code hay tài liệu trên `main` thì không chuyển Done.
+- Nếu Jira đã kết nối GitHub (thẻ có mục Development), đặt mã KAN trong tên nhánh, commit và PR thì Jira tự gắn link. Chưa kết nối thì nhờ PM bật.
+- Mẫu mô tả thẻ (PM điền khi tạo):
+  ```
+  Mục tiêu: ...
+  Tiêu chí hoàn thành: ...
+  File/thư mục làm việc: backend/services/matcher.py
+  Phụ thuộc: KAN-xx (nếu có)
+  Hạn: ...
+  ```
 
 ## 3. Definition of Done
 - [ ] Chạy được theo README trên máy sạch (hoặc có hướng dẫn chạy riêng cho phần của mình)
