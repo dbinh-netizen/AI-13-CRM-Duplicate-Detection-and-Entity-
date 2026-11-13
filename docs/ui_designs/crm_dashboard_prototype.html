@@ -1,0 +1,3765 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      SongNhat AI-13 CRM — Identity Resolution & Crosswalk Studio (KAN-8 v6.0)
+    </title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        --bg-grid: radial-gradient(
+          rgba(79, 70, 229, 0.12) 1px,
+          transparent 1px
+        );
+      }
+      .dark {
+        --bg-grid: radial-gradient(
+          rgba(129, 140, 248, 0.12) 1px,
+          transparent 1px
+        );
+      }
+
+      /* Nền lưới kỹ thuật kết hợp Mesh Gradient chuẩn Enterprise SaaS */
+      body:not(.wireframe-mode) main {
+        background-color: #f8fafc;
+        background-image:
+          radial-gradient(
+            900px 440px at 5% -5%,
+            rgba(79, 70, 229, 0.11),
+            transparent 60%
+          ),
+          radial-gradient(
+            750px 380px at 96% 0%,
+            rgba(14, 165, 233, 0.09),
+            transparent 55%
+          ),
+          var(--bg-grid);
+        background-size:
+          100% 100%,
+          100% 100%,
+          24px 24px;
+      }
+      html.dark body:not(.wireframe-mode) main {
+        background-color: #070b14;
+        background-image:
+          radial-gradient(
+            900px 440px at 10% -5%,
+            rgba(79, 70, 229, 0.24),
+            transparent 60%
+          ),
+          radial-gradient(
+            750px 380px at 95% 5%,
+            rgba(14, 165, 233, 0.14),
+            transparent 55%
+          ),
+          var(--bg-grid);
+      }
+
+      /* Thẻ Bento chuẩn SaaS cao cấp có hiệu ứng nâng & viền sáng khi rê chuột */
+      .bento-card {
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-radius: 1rem;
+        box-shadow:
+          0 1px 2px rgba(15, 23, 42, 0.03),
+          0 12px 30px -12px rgba(15, 23, 42, 0.07);
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .bento-card:hover {
+        box-shadow:
+          0 8px 20px -6px rgba(79, 70, 229, 0.09),
+          0 22px 44px -16px rgba(79, 70, 229, 0.16);
+        border-color: rgba(99, 102, 241, 0.45);
+      }
+      html.dark .bento-card {
+        background: rgba(15, 23, 42, 0.88);
+        border-color: rgba(51, 65, 85, 0.8);
+        box-shadow: 0 16px 36px -14px rgba(0, 0, 0, 0.7);
+      }
+      html.dark .bento-card:hover {
+        border-color: rgba(129, 140, 248, 0.55);
+      }
+
+      .kpi-interactive {
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .kpi-interactive:hover {
+        transform: translateY(-5px);
+      }
+
+      /* Hiệu ứng Micro-interactions cho toàn bộ Nút bấm (Hover Shimmer & Lift) */
+      button,
+      .interactive-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      button:active {
+        transform: scale(0.97) !important;
+      }
+      .btn-glow {
+        background: linear-gradient(
+          135deg,
+          #4338ca 0%,
+          #4f46e5 50%,
+          #6d28d9 100%
+        );
+        color: #ffffff;
+        box-shadow: 0 6px 18px -4px rgba(79, 70, 229, 0.6);
+      }
+      .btn-glow:hover {
+        filter: brightness(1.09);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px -5px rgba(79, 70, 229, 0.85);
+      }
+      .btn-glow::after,
+      .btn-shimmer::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 65%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.26),
+          transparent
+        );
+        transform: skewX(-20deg);
+        transition: left 0.55s ease;
+        pointer-events: none;
+      }
+      .btn-glow:hover::after,
+      .btn-shimmer:hover::after {
+        left: 140%;
+      }
+
+      .btn-secondary-hover:hover {
+        transform: translateY(-1.5px);
+        box-shadow: 0 6px 14px -4px rgba(15, 23, 42, 0.1);
+        border-color: #6366f1;
+      }
+
+      /* Animation vẽ biểu đồ SVG */
+      @keyframes drawStroke {
+        from {
+          stroke-dashoffset: 302;
+        }
+      }
+      @keyframes growBar {
+        from {
+          transform: scaleY(0);
+        }
+      }
+      .svg-draw {
+        animation: drawStroke 1.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      }
+      .bar-grow {
+        transform-origin: bottom;
+        animation: growBar 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      }
+
+      /* Nhãn chú thích thành phần UI [UI-01]...[UI-11] */
+      .wf-annotation {
+        display: none;
+      }
+      body.show-annotations .wf-annotation {
+        display: inline-flex;
+      }
+      body.show-annotations .wf-region {
+        position: relative;
+        outline: 2px dashed #4f46e5;
+        outline-offset: 3px;
+      }
+
+      /* Chế độ Khung dây (Low-Fidelity Wireframe Mode) */
+      body.wireframe-mode {
+        filter: grayscale(100%) contrast(108%);
+      }
+      body.wireframe-mode * {
+        box-shadow: none !important;
+        background-image: none !important;
+      }
+      body.wireframe-mode .bento-card,
+      body.wireframe-mode .hero-studio {
+        border: 2px dashed #475569 !important;
+        background: #f8fafc !important;
+        color: #0f172a !important;
+      }
+      body.wireframe-mode .hero-studio * {
+        color: #0f172a !important;
+      }
+
+      /* Highlight từ khóa tìm kiếm */
+      mark.hl {
+        background-color: #fef08a;
+        color: #854d0e;
+        padding: 0 3px;
+        border-radius: 3px;
+        font-weight: 700;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+      html.dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+      }
+    </style>
+  </head>
+
+  <body
+    class="h-full font-sans text-slate-800 dark:text-slate-100 antialiased flex overflow-hidden bg-slate-100 dark:bg-slate-950"
+  >
+    <!-- ==================== 1. LEFT SIDEBAR NAVIGATION ==================== -->
+    <aside
+      class="w-64 bg-slate-950 text-slate-300 flex flex-col shrink-0 border-r border-slate-800/80 select-none z-20 wf-region"
+      style="
+        background:
+          radial-gradient(
+            380px 260px at 0% 0%,
+            rgba(99, 102, 241, 0.3),
+            transparent 70%
+          ),
+          linear-gradient(180deg, #060913 0%, #0f172a 100%);
+      "
+    >
+      <!-- Nhãn [UI-01] -->
+      <div
+        class="wf-annotation absolute top-[70px] right-2 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+      >
+        <span>[UI-01] Sidebar Điều hướng</span>
+      </div>
+
+      <!-- Brand Header (SongNhat RFP Context) -->
+      <div class="h-16 px-5 flex items-center gap-3 border-b border-white/10">
+        <div
+          class="w-9 h-9 rounded-xl btn-glow flex items-center justify-center text-white font-bold shrink-0"
+        >
+          <i class="fa-solid fa-industry text-sm"></i>
+        </div>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-white text-sm tracking-tight"
+              >SongNhat CRM</span
+            >
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-bold"
+              >KAN-8</span
+            >
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">
+            AI-13 Identity Crosswalk Pilot
+          </p>
+        </div>
+      </div>
+
+      <!-- Menu Chính -->
+      <div class="px-3 py-4 flex-1 overflow-y-auto space-y-1.5">
+        <p
+          class="px-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2"
+        >
+          Màn hình Chính (KAN-8)
+        </p>
+
+        <button
+          onclick="switchScreen('overview')"
+          id="nav-overview"
+          class="nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all btn-glow text-white"
+        >
+          <span class="flex items-center gap-2.5">
+            <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+            <span>1. Tổng quan (Dashboard)</span>
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/25"
+            >Pilot</span
+          >
+        </button>
+
+        <button
+          onclick="switchScreen('customers')"
+          id="nav-customers"
+          class="nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-white/10 hover:text-white"
+        >
+          <span class="flex items-center gap-2.5">
+            <i class="fa-solid fa-building-user w-4 text-center"></i>
+            <span>2. Danh sách & Tra cứu KH</span>
+          </span>
+          <span
+            class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-slate-300"
+            >14.8k</span
+          >
+        </button>
+
+        <button
+          onclick="switchScreen('import')"
+          id="nav-import"
+          class="nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-white/10 hover:text-white"
+        >
+          <span class="flex items-center gap-2.5">
+            <i class="fa-solid fa-file-shield w-4 text-center"></i>
+            <span>3. Nhập dữ liệu (Intake)</span>
+          </span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
+
+        <div class="pt-3 pb-1">
+          <p
+            class="px-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2"
+          >
+            Liên kết Module Nhóm (Pkg C)
+          </p>
+        </div>
+
+        <button
+          onclick="openCompareModal('ACC-ERP-1042')"
+          class="btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition-all"
+        >
+          <span class="flex items-center gap-2.5">
+            <i
+              class="fa-solid fa-code-compare w-4 text-center text-amber-400"
+            ></i>
+            <span>Đối chiếu & Phê duyệt</span>
+          </span>
+          <span
+            class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-400/30"
+            >985</span
+          >
+        </button>
+
+        <div class="pt-3 pb-1">
+          <p
+            class="px-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2"
+          >
+            Hồ sơ Nghiệm thu Jira
+          </p>
+        </div>
+
+        <button
+          onclick="switchScreen('specs')"
+          id="nav-specs"
+          class="nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-white/10 hover:text-white"
+        >
+          <span class="flex items-center gap-2.5">
+            <i
+              class="fa-solid fa-clipboard-check w-4 text-center text-sky-400"
+            ></i>
+            <span>4. Đặc tả UI & Chuẩn RFP</span>
+          </span>
+          <span
+            class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-sky-500/20 text-sky-300"
+            >RFP</span
+          >
+        </button>
+      </div>
+
+      <!-- Cam kết Ranh giới Hệ thống (REV-08 Core Boundary) -->
+      <div
+        class="m-3 p-3.5 rounded-xl bg-white/5 border border-white/10 text-[11px] space-y-2"
+      >
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+            <span
+              class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+            ></span>
+            REV-08 Core Safe Mode
+          </span>
+          <span class="font-mono text-[10px] text-indigo-300"
+            >No Writeback</span
+          >
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          Bảo toàn 100% bản ghi gốc. Chỉ kích hoạt
+          <strong>Canonical Crosswalk</strong> khi có phê duyệt độc lập.
+        </p>
+        <div
+          class="pt-1 border-t border-white/10 flex justify-between text-[10px] text-slate-400"
+        >
+          <span
+            >Assignee: <strong class="text-white">Tài Nguyễn Văn</strong></span
+          >
+          <span>KAN-8</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== 2. MAIN WORKSPACE AREA ==================== -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- TOP HEADER BAR -->
+      <header
+        class="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between shrink-0 z-10 wf-region gap-3"
+      >
+        <!-- Nhãn [UI-02] -->
+        <div
+          class="wf-annotation absolute top-1 left-1/4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+        >
+          <span
+            >[UI-02] Header, Chuyển đổi Vai trò Độc lập (REV-03) & Công cụ
+            Wireframe</span
+          >
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-xs min-w-0">
+          <span
+            class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 font-mono font-bold text-[11px] shrink-0"
+            >SongNhat RFP</span
+          >
+          <i
+            class="fa-solid fa-chevron-right text-[10px] text-slate-300 shrink-0"
+          ></i>
+          <span
+            id="header-breadcrumb"
+            class="font-extrabold text-slate-900 dark:text-white truncate"
+          >
+            1. Màn hình Tổng quan (CRM Dashboard Overview)
+          </span>
+        </div>
+
+        <!-- Công cụ điều khiển & Role Switcher (REV-03) -->
+        <div class="flex items-center gap-2.5 shrink-0">
+          <!-- Bộ chuyển đổi Vai trò Steward / Approver (Chuẩn REV-03: Không tự phê duyệt) -->
+          <button
+            onclick="toggleUserRole()"
+            id="btn-role"
+            class="btn-secondary-hover hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border border-amber-300 dark:border-amber-700 bg-amber-50/90 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200"
+            title="Chuẩn REV-03: Tách biệt quyền Người đề xuất (Steward) và Người phê duyệt độc lập (Approver)"
+          >
+            <i class="fa-solid fa-user-shield text-amber-600"></i>
+            <span
+              >Vai trò (REV-03):
+              <strong id="label-role-state"
+                >Data Steward (Đề xuất)</strong
+              ></span
+            >
+          </button>
+
+          <!-- Nút 1: Bật/tắt Nhãn chú thích [UI-01]...[UI-11] -->
+          <button
+            onclick="toggleAnnotations()"
+            id="btn-annotations"
+            class="btn-secondary-hover flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300"
+            title="Bật nhãn [UI-01]...[UI-11] để chụp ảnh nộp Jira"
+          >
+            <i class="fa-solid fa-tags"></i>
+            <span
+              >Nhãn UI: <strong id="label-annotation-state">TẮT</strong></span
+            >
+          </button>
+
+          <!-- Nút 2: Chuyển chế độ Wireframe trắng đen -->
+          <button
+            onclick="toggleWireframeMode()"
+            id="btn-wireframe"
+            class="btn-secondary-hover flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+            title="Chuyển sang giao diện Khung dây trắng đen (Wireframe)"
+          >
+            <i class="fa-solid fa-compass-drafting"></i>
+            <span>Chế độ: <strong id="label-wf-state">UI Thực tế</strong></span>
+          </button>
+
+          <!-- Nút 3: Chuyển đổi Sáng / Tối (Dark Mode) -->
+          <button
+            onclick="toggleDarkMode()"
+            id="btn-dark"
+            class="btn-secondary-hover w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-300 flex items-center justify-center"
+            title="Chuyển đổi Giao diện Sáng / Tối (Dark Mode)"
+          >
+            <i id="icon-dark" class="fa-solid fa-moon"></i>
+          </button>
+
+          <div class="h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+          <!-- Thông tin Assignee -->
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-xl btn-glow text-white font-extrabold text-xs flex items-center justify-center"
+            >
+              TV
+            </div>
+            <div class="hidden sm:block text-left leading-tight">
+              <div class="text-xs font-bold text-slate-800 dark:text-slate-100">
+                Tài Nguyễn Văn
+              </div>
+              <div class="text-[11px] text-slate-500">Assignee • KAN-8</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN SCROLLABLE CONTENT -->
+      <main class="flex-1 overflow-y-auto p-6 space-y-6">
+        <!-- =====================================================================
+           MÀN HÌNH 1: TỔNG QUAN (SONGNHAT CRM IDENTITY RESOLUTION COMMAND CENTER)
+           ===================================================================== -->
+        <section id="screen-overview" class="space-y-6">
+          <!-- HERO BANNER: TRUNG TÂM KIỂM SOÁT ĐỊNH DANH & CROSSWALK SONGNHAT -->
+          <div
+            class="hero-studio relative overflow-hidden rounded-2xl p-6 lg:p-7 text-white shadow-xl wf-region"
+            style="
+              background: linear-gradient(
+                125deg,
+                #060913 0%,
+                #1e1b4b 45%,
+                #3730a3 80%,
+                #4f46e5 100%
+              );
+            "
+          >
+            <div
+              class="absolute -top-24 -right-16 w-80 h-80 rounded-full pointer-events-none"
+              style="
+                background: radial-gradient(
+                  circle,
+                  rgba(56, 189, 248, 0.32),
+                  transparent 65%
+                );
+              "
+            ></div>
+            <div
+              class="absolute -bottom-28 left-1/3 w-96 h-96 rounded-full pointer-events-none"
+              style="
+                background: radial-gradient(
+                  circle,
+                  rgba(16, 185, 129, 0.22),
+                  transparent 65%
+                );
+              "
+            ></div>
+
+            <div
+              class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+            >
+              <div class="max-w-2xl space-y-3">
+                <div
+                  class="inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-bold text-indigo-200 backdrop-blur-md"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"
+                  ></span>
+                  <span
+                    >SongNhat Industrial Sales & Service • Bounded Batch Pilot
+                    (Max 15,000 Records)</span
+                  >
+                </div>
+                <h1
+                  class="text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight"
+                >
+                  Trung tâm Phát hiện Trùng lặp & Phân giải Thực thể CRM
+                </h1>
+                <p
+                  class="text-xs lg:text-sm text-indigo-100/90 leading-relaxed"
+                >
+                  Tách biệt độc lập
+                  <strong>Hồ sơ Doanh nghiệp (2 nguồn Account CSV)</strong> và
+                  <strong>Người liên hệ (1 nguồn Contact CSV)</strong>. Phân
+                  biệt rõ cặp trùng lặp với
+                  <em>Công ty mẹ - Chi nhánh - Nhà máy</em> và xuất bảng tham
+                  chiếu <strong>Canonical Crosswalk</strong> có kiểm duyệt.
+                </p>
+
+                <!-- 3 Thanh trạng thái Giới hạn Pilot (Pilot Limits - Section 2 RFP) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div
+                    class="p-3 rounded-xl bg-white/10 border border-white/15 backdrop-blur-xs"
+                  >
+                    <div
+                      class="flex justify-between text-[10px] uppercase tracking-wider text-indigo-200 font-bold"
+                    >
+                      <span>Dung lượng Pilot</span>
+                      <span class="font-mono text-emerald-300">98.8%</span>
+                    </div>
+                    <div
+                      class="text-base font-extrabold font-mono text-white mt-0.5"
+                    >
+                      <span class="count-up" data-target="14820">14,820</span> /
+                      15,000
+                    </div>
+                    <div
+                      class="w-full h-1.5 bg-white/15 rounded-full mt-1.5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-emerald-400 rounded-full"
+                        style="width: 98.8%"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="p-3 rounded-xl bg-white/10 border border-white/15 backdrop-blur-xs"
+                  >
+                    <div
+                      class="flex justify-between text-[10px] uppercase tracking-wider text-indigo-200 font-bold"
+                    >
+                      <span>Trần Cặp Ứng viên</span>
+                      <span class="font-mono text-sky-300">21.1%</span>
+                    </div>
+                    <div
+                      class="text-base font-extrabold font-mono text-white mt-0.5"
+                    >
+                      <span class="count-up" data-target="42150">42,150</span> /
+                      200k
+                    </div>
+                    <div
+                      class="w-full h-1.5 bg-white/15 rounded-full mt-1.5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-sky-400 rounded-full"
+                        style="width: 21.1%"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="p-3 rounded-xl bg-white/10 border border-white/15 backdrop-blur-xs"
+                  >
+                    <div
+                      class="flex justify-between text-[10px] uppercase tracking-wider text-indigo-200 font-bold"
+                    >
+                      <span>Mục tiêu Recall AT-01</span>
+                      <span class="font-mono text-amber-300">&ge; 90.0%</span>
+                    </div>
+                    <div
+                      class="text-base font-extrabold font-mono text-emerald-300 mt-0.5"
+                    >
+                      <span
+                        class="count-up"
+                        data-target="94.2"
+                        data-decimals="1"
+                        data-suffix="%"
+                        >94.2%</span
+                      >
+                      <span
+                        class="text-[11px] font-sans font-normal text-indigo-100"
+                        >(Đạt)</span
+                      >
+                    </div>
+                    <div
+                      class="w-full h-1.5 bg-white/15 rounded-full mt-1.5 overflow-hidden"
+                    >
+                      <div
+                        class="h-full bg-amber-400 rounded-full"
+                        style="width: 94.2%"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onclick="
+                      switchScreen('customers');
+                      setStatusTab('DUP');
+                    "
+                    class="btn-shimmer px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-extrabold hover:bg-indigo-50 shadow-lg flex items-center gap-2"
+                  >
+                    <i class="fa-solid fa-code-compare text-indigo-600"></i>
+                    Mở Hàng đợi Duyệt 985 Cặp Ứng viên
+                  </button>
+                  <button
+                    onclick="switchScreen('import')"
+                    class="btn-shimmer px-4 py-2.5 rounded-xl border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2"
+                  >
+                    <i class="fa-solid fa-file-csv"></i>
+                    Kiểm tra 3 Nguồn Intake CSV (Package A)
+                  </button>
+                </div>
+              </div>
+
+              <!-- ĐỒNG HỒ ĐO TỶ LỆ CROSSWALK ĐÃ DUYỆT (RADIAL GAUGE) -->
+              <div
+                class="flex items-center gap-5 bg-slate-950/50 border border-white/15 rounded-2xl p-5 backdrop-blur-md shrink-0 self-start lg:self-center"
+              >
+                <div class="relative w-32 h-32">
+                  <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+                    <defs>
+                      <linearGradient
+                        id="scoreGrad"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" stop-color="#34d399" />
+                        <stop offset="50%" stop-color="#38bdf8" />
+                        <stop offset="100%" stop-color="#818cf8" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.12)"
+                      stroke-width="10"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke="url(#scoreGrad)"
+                      stroke-width="10"
+                      stroke-linecap="round"
+                      stroke-dasharray="301.59"
+                      stroke-dashoffset="28.65"
+                      class="svg-draw"
+                    />
+                  </svg>
+                  <div
+                    class="absolute inset-0 flex flex-col items-center justify-center"
+                  >
+                    <span
+                      class="text-2xl font-extrabold font-mono tracking-tight"
+                    >
+                      <span
+                        class="count-up"
+                        data-target="90.5"
+                        data-decimals="1"
+                        data-suffix="%"
+                        >90.5%</span
+                      >
+                    </span>
+                    <span
+                      class="text-[10px] uppercase tracking-widest text-emerald-300 font-bold mt-0.5"
+                      >Crosswalk</span
+                    >
+                  </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                  <div class="font-extrabold text-white text-sm">
+                    Phân bổ Pool Dữ liệu (DAT-04)
+                  </div>
+                  <div
+                    class="flex items-center justify-between gap-4 text-slate-200"
+                  >
+                    <span class="flex items-center gap-2"
+                      ><span class="w-2.5 h-2.5 rounded-sm bg-indigo-400"></span
+                      >2 Account CSV</span
+                    >
+                    <strong class="font-mono">9,820 KH</strong>
+                  </div>
+                  <div
+                    class="flex items-center justify-between gap-4 text-sky-200"
+                  >
+                    <span class="flex items-center gap-2"
+                      ><span class="w-2.5 h-2.5 rounded-sm bg-sky-400"></span>1
+                      Contact CSV</span
+                    >
+                    <strong class="font-mono">5,000 LH</strong>
+                  </div>
+                  <div
+                    class="flex items-center justify-between gap-4 text-emerald-300"
+                  >
+                    <span class="flex items-center gap-2"
+                      ><span
+                        class="w-2.5 h-2.5 rounded-sm bg-emerald-400"
+                      ></span
+                      >Canonical IDs</span
+                    >
+                    <strong class="font-mono">13,410</strong>
+                  </div>
+                  <div
+                    class="flex items-center justify-between gap-4 text-amber-300"
+                  >
+                    <span class="flex items-center gap-2"
+                      ><span class="w-2.5 h-2.5 rounded-sm bg-amber-400"></span
+                      >Chờ duyệt</span
+                    >
+                    <strong class="font-mono">985 cặp</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 THẺ KPI THỐNG KÊ TỔNG QUAN KÈM SPARKLINE SVG -->
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 wf-region"
+          >
+            <div
+              class="wf-annotation absolute -top-3 left-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+            >
+              <span
+                >[UI-03] 4 Thẻ Chỉ số KPI Chuẩn RFP (Tách biệt Account/Contact &
+                Không Tự động Gộp)</span
+              >
+            </div>
+
+            <!-- KPI 1 -->
+            <div
+              onclick="
+                switchScreen('customers');
+                setPoolFilter('ALL');
+              "
+              class="bento-card kpi-interactive p-5 relative overflow-hidden cursor-pointer"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                    >Tổng Bản ghi Nguồn (3 CSV)</span
+                  >
+                  <div
+                    class="text-3xl font-extrabold font-mono text-slate-900 dark:text-white mt-1"
+                  >
+                    <span class="count-up" data-target="14820">14,820</span>
+                  </div>
+                </div>
+                <span
+                  class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20"
+                >
+                  <i class="fa-solid fa-database text-sm"></i>
+                </span>
+              </div>
+              <div class="mt-3 flex items-center justify-between">
+                <span
+                  class="text-[11px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-full"
+                >
+                  9,820 Accounts • 5,000 Contacts
+                </span>
+                <svg class="w-16 h-6 overflow-visible" viewBox="0 0 80 28">
+                  <path
+                    d="M0 24 L15 20 L30 22 L45 13 L60 10 L80 3"
+                    fill="none"
+                    stroke="#6366f1"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <!-- KPI 2 -->
+            <div
+              onclick="
+                switchScreen('customers');
+                setStatusTab('APPROVED_DUPLICATE');
+              "
+              class="bento-card kpi-interactive p-5 relative overflow-hidden cursor-pointer"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                    >Định danh Chuẩn (Canonical IDs)</span
+                  >
+                  <div
+                    class="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-1"
+                  >
+                    <span class="count-up" data-target="13410">13,410</span>
+                  </div>
+                </div>
+                <span
+                  class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20"
+                >
+                  <i class="fa-solid fa-fingerprint text-sm"></i>
+                </span>
+              </div>
+              <div class="mt-3 flex items-center justify-between">
+                <span
+                  class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full"
+                >
+                  Đã duyệt Crosswalk (REV-05)
+                </span>
+                <svg class="w-16 h-6 overflow-visible" viewBox="0 0 80 28">
+                  <path
+                    d="M0 25 L16 21 L32 17 L48 15 L64 8 L80 4"
+                    fill="none"
+                    stroke="#10b981"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <!-- KPI 3 -->
+            <div
+              onclick="
+                switchScreen('customers');
+                setStatusTab('UNDER_REVIEW');
+              "
+              class="bento-card kpi-interactive p-5 relative overflow-hidden cursor-pointer"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-bold text-amber-700 dark:text-amber-400"
+                    >Hàng đợi Chờ Duyệt (REV-01)</span
+                  >
+                  <div
+                    class="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-1"
+                  >
+                    <span class="count-up" data-target="985">985</span>
+                  </div>
+                </div>
+                <span
+                  class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20"
+                >
+                  <i class="fa-solid fa-user-check text-sm"></i>
+                </span>
+              </div>
+              <div class="mt-3 flex items-center justify-between">
+                <span
+                  class="text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full"
+                >
+                  Gồm Trùng & Quan hệ Mẹ-Con
+                </span>
+                <svg class="w-16 h-6 overflow-visible" viewBox="0 0 80 28">
+                  <path
+                    d="M0 18 L16 12 L32 20 L48 10 L64 15 L80 9"
+                    fill="none"
+                    stroke="#f59e0b"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <!-- KPI 4 -->
+            <div
+              onclick="
+                switchScreen('customers');
+                setStatusTab('HELD_CONFLICT');
+              "
+              class="bento-card kpi-interactive p-5 relative overflow-hidden cursor-pointer"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <span
+                    class="text-xs font-bold text-rose-700 dark:text-rose-400"
+                    >Tạm giữ & Ưu tiên Cao (MAT-05)</span
+                  >
+                  <div
+                    class="text-3xl font-extrabold font-mono text-rose-600 dark:text-rose-400 mt-1"
+                  >
+                    <span class="count-up" data-target="425">425</span>
+                  </div>
+                </div>
+                <span
+                  class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-500/20"
+                >
+                  <i class="fa-solid fa-ban text-sm"></i>
+                </span>
+              </div>
+              <div class="mt-3 flex items-center justify-between">
+                <span
+                  class="text-[11px] font-bold text-rose-600 dark:text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-full"
+                >
+                  Cấm gộp tự động (Cần Approver)
+                </span>
+                <svg class="w-16 h-6 overflow-visible" viewBox="0 0 80 28">
+                  <path
+                    d="M0 8 L16 12 L32 10 L48 16 L64 19 L80 22"
+                    fill="none"
+                    stroke="#f43f5e"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- SƠ ĐỒ KIẾN TRÚC 4 GÓI CÔNG VIỆC CHUẨN RFP (ANNEX A FIGURE 1) -->
+          <div class="bento-card p-5 wf-region">
+            <div
+              class="wf-annotation absolute -top-3 right-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+            >
+              <span
+                >[UI-03B] Kiến trúc 4 Gói Công việc Cốt lõi (Annex A Figure 1 -
+                SongNhat RFP)</span
+              >
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h2
+                  class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"
+                >
+                  <i class="fa-solid fa-diagram-project text-indigo-600"></i>
+                  Kiến trúc Kiểm soát Phân giải Thực thể (Controlled Identity
+                  Resolution Architecture)
+                </h2>
+                <p class="text-xs text-slate-500">
+                  Tuân thủ nghiêm ngặt 4 gói cốt lõi (Package A &rarr; D): Không
+                  ghi đè CRM gốc, không suy diễn bắc cầu (A~B, B~C &ne; A=C)
+                </p>
+              </div>
+              <span
+                class="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800"
+              >
+                <i class="fa-solid fa-lock mr-1"></i>Source Records Immutable
+                (DAT-01)
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+              <div
+                class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span
+                    class="font-mono text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400"
+                    >PKG A • INTAKE</span
+                  >
+                  <i class="fa-solid fa-file-shield text-slate-400"></i>
+                </div>
+                <div class="font-bold text-slate-900 dark:text-white">
+                  Tiếp nhận Có kiểm soát
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">
+                  2 Account CSV + 1 Contact CSV. Giữ nguyên số 0 ở đầu, cách ly
+                  dòng lỗi (Quarantine), không trộn lẫn Pool.
+                </p>
+              </div>
+
+              <div
+                class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span
+                    class="font-mono text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400"
+                    >PKG B • DETECTION</span
+                  >
+                  <i
+                    class="fa-solid fa-magnifying-glass-chart text-indigo-500"
+                  ></i>
+                </div>
+                <div class="font-bold text-slate-900 dark:text-white">
+                  Phát hiện Có giải thích
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">
+                  Chuẩn hóa tiếng Việt, so khớp Exact + Fuzzy. Phân biệt MST gốc
+                  và mã chi nhánh (<code class="font-mono">-001</code>), chặn
+                  xung đột.
+                </p>
+              </div>
+
+              <div
+                class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span
+                    class="font-mono text-[11px] font-extrabold text-amber-700 dark:text-amber-400"
+                    >PKG C • HUMAN REVIEW</span
+                  >
+                  <i class="fa-solid fa-users-viewfinder text-amber-600"></i>
+                </div>
+                <div class="font-bold text-amber-950 dark:text-amber-200">
+                  Đề xuất & Duyệt Độc lập
+                </div>
+                <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-1">
+                  4 quyết định: Cùng thực thể, Liên quan (Mẹ/Chi nhánh), Khác
+                  biệt, Hoãn. Steward đề xuất, Approver kích hoạt.
+                </p>
+              </div>
+
+              <div
+                class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800"
+              >
+                <div class="flex items-center justify-between mb-1">
+                  <span
+                    class="font-mono text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400"
+                    >PKG D • REGISTER</span
+                  >
+                  <i class="fa-solid fa-rotate-left text-emerald-600"></i>
+                </div>
+                <div class="font-bold text-emerald-950 dark:text-emerald-200">
+                  Sổ đăng ký Crosswalk
+                </div>
+                <p
+                  class="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1"
+                >
+                  Cấp Canonical ID bất biến, xuất CSV/PDF. Hỗ trợ tách/hủy liên
+                  kết (Reversible Split/Unlink - REV-07).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- BIỂU ĐỒ CỘT TƯƠNG TÁC & BIỂU ĐỒ DONUT PHÂN LOẠI QUYẾT ĐỊNH -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-7 bento-card p-6 wf-region">
+              <div
+                class="wf-annotation absolute -top-3 left-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+              >
+                <span
+                  >[UI-04] Biểu đồ Xu hướng Bản ghi Sạch, Cặp Trùng & Thực thể
+                  Liên quan (6 Tháng)</span
+                >
+              </div>
+              <div
+                class="flex flex-wrap items-center justify-between gap-2 mb-5"
+              >
+                <div>
+                  <h2
+                    class="text-sm font-extrabold text-slate-900 dark:text-white"
+                  >
+                    Thống kê Lô Quét (Batch Runs) & Phân loại Ứng viên theo
+                    Tháng
+                  </h2>
+                  <p class="text-xs text-slate-500">
+                    Đo lường khối lượng hồ sơ hợp lệ so với các cặp ứng viên
+                    phát hiện (Rê chuột vào cột để xem chi tiết)
+                  </p>
+                </div>
+                <div class="flex items-center gap-4 text-xs font-bold">
+                  <span class="flex items-center gap-1.5">
+                    <span
+                      class="w-3 h-3 rounded-xs bg-indigo-600 inline-block"
+                    ></span>
+                    Bản ghi Chuẩn
+                  </span>
+                  <span class="flex items-center gap-1.5">
+                    <span
+                      class="w-3 h-3 rounded-xs bg-amber-500 inline-block"
+                    ></span>
+                    Cặp Ứng viên (Review)
+                  </span>
+                </div>
+              </div>
+
+              <div id="trend-chart" class="mt-2"></div>
+
+              <div
+                class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500"
+              >
+                <span
+                  >Hiệu năng Batch (NFR-01):
+                  <strong class="font-mono text-slate-800 dark:text-slate-200"
+                    >18 phút / 15,000 bản ghi (&le; 60 phút)</strong
+                  ></span
+                >
+                <span class="text-emerald-600 dark:text-emerald-400 font-bold">
+                  <i class="fa-solid fa-gauge-high mr-1"></i>Giảm 34% thời gian
+                  tra cứu thủ công (Mục tiêu AT-08: &ge; 25%)
+                </span>
+              </div>
+            </div>
+
+            <!-- Biểu đồ Donut SVG Phân tích bằng chứng (5 cột) -->
+            <div
+              class="lg:col-span-5 bento-card p-6 wf-region flex flex-col justify-between"
+            >
+              <div
+                class="wf-annotation absolute -top-3 right-3 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+              >
+                <span
+                  >[UI-05] Biểu đồ Donut Phân loại Bằng chứng Trùng vs. Quan hệ
+                  Mẹ-Chi nhánh</span
+                >
+              </div>
+              <div>
+                <h2
+                  class="text-sm font-extrabold text-slate-900 dark:text-white"
+                >
+                  Phân loại Bằng chứng Ứng viên (MAT-03 & VN-02)
+                </h2>
+                <p class="text-xs text-slate-500 mb-4">
+                  Phân biệt rõ trùng thực thể với công ty mẹ/chi nhánh dùng
+                  chung SĐT tổng đài hoặc tên miền
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6 my-2">
+                  <div class="relative w-36 h-36 shrink-0">
+                    <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                      <circle
+                        cx="21"
+                        cy="21"
+                        r="15.915"
+                        fill="transparent"
+                        stroke="#f1f5f9"
+                        stroke-width="5"
+                      ></circle>
+                      <circle
+                        cx="21"
+                        cy="21"
+                        r="15.915"
+                        fill="transparent"
+                        stroke="#f43f5e"
+                        stroke-width="5"
+                        stroke-dasharray="42 58"
+                        stroke-dashoffset="0"
+                      ></circle>
+                      <circle
+                        cx="21"
+                        cy="21"
+                        r="15.915"
+                        fill="transparent"
+                        stroke="#8b5cf6"
+                        stroke-width="5"
+                        stroke-dasharray="26 74"
+                        stroke-dashoffset="-42"
+                      ></circle>
+                      <circle
+                        cx="21"
+                        cy="21"
+                        r="15.915"
+                        fill="transparent"
+                        stroke="#f59e0b"
+                        stroke-width="5"
+                        stroke-dasharray="20 80"
+                        stroke-dashoffset="-68"
+                      ></circle>
+                      <circle
+                        cx="21"
+                        cy="21"
+                        r="15.915"
+                        fill="transparent"
+                        stroke="#10b981"
+                        stroke-width="5"
+                        stroke-dasharray="12 88"
+                        stroke-dashoffset="-88"
+                      ></circle>
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex flex-col items-center justify-center text-center"
+                    >
+                      <span
+                        class="text-lg font-extrabold font-mono text-slate-900 dark:text-white"
+                        >1,410</span
+                      >
+                      <span
+                        class="text-[10px] text-slate-400 font-bold uppercase"
+                        >Cặp xét duyệt</span
+                      >
+                    </div>
+                  </div>
+
+                  <div class="flex-1 space-y-2 w-full text-xs">
+                    <div
+                      class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60"
+                    >
+                      <span class="flex items-center gap-2 font-semibold"
+                        ><span
+                          class="w-2.5 h-2.5 rounded-full bg-rose-500"
+                        ></span
+                        >Trùng MST + Tên Pháp lý</span
+                      >
+                      <span class="font-mono font-bold text-rose-600"
+                        >42% (592)</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60"
+                    >
+                      <span class="flex items-center gap-2 font-semibold"
+                        ><span
+                          class="w-2.5 h-2.5 rounded-full bg-purple-500"
+                        ></span
+                        >Quan hệ Mẹ - Chi nhánh</span
+                      >
+                      <span class="font-mono font-bold text-purple-600"
+                        >26% (367)</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60"
+                    >
+                      <span class="flex items-center gap-2 font-semibold"
+                        ><span
+                          class="w-2.5 h-2.5 rounded-full bg-amber-500"
+                        ></span
+                        >Trùng SĐT / Email Liên hệ</span
+                      >
+                      <span class="font-mono font-bold text-amber-600"
+                        >20% (282)</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60"
+                    >
+                      <span class="flex items-center gap-2 font-semibold"
+                        ><span
+                          class="w-2.5 h-2.5 rounded-full bg-emerald-500"
+                        ></span
+                        >Đổi Địa chỉ Hành chính</span
+                      >
+                      <span class="font-mono font-bold text-emerald-600"
+                        >12% (169)</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="mt-3 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-xs text-purple-950 dark:text-purple-200"
+              >
+                <i class="fa-solid fa-sitemap text-purple-600 mr-1"></i>
+                <strong>Quy tắc Địa phương (Section 1 RFP):</strong> Chung gốc
+                MST hoặc tổng đài nhưng khác mã chi nhánh (<code
+                  class="font-mono"
+                  >-001</code
+                >) được phân loại là <strong>Thực thể Liên quan</strong>, tuyệt
+                đối không gộp chung!
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================================
+           MÀN HÌNH 2: DANH SÁCH & TRA CỨU KHÁCH HÀNG / DOANH NGHIỆP (CORE KAN-8)
+           ===================================================================== -->
+        <section id="screen-customers" class="space-y-5 hidden">
+          <!-- Header Màn hình 2 & BỘ CHUYỂN ĐỔI TÁCH BIỆT POOL (DAT-04) -->
+          <div class="bento-card p-5 space-y-4">
+            <div
+              class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            >
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                  >
+                    Màn hình 2 / 3 • Customer & Account Directory (Trọng tâm
+                    KAN-8)
+                  </span>
+                  <span class="text-xs font-mono text-slate-400"
+                    >DAT-04 Pool Separation</span
+                  >
+                </div>
+                <h1
+                  class="text-lg font-extrabold text-slate-900 dark:text-white"
+                >
+                  Danh sách & Tra cứu Định danh Khách hàng (Canonical Crosswalk
+                  Lookup)
+                </h1>
+                <p class="text-xs text-slate-500">
+                  Tách biệt rõ tập dữ liệu
+                  <strong>Tài khoản Doanh nghiệp (Account Pool)</strong> và
+                  <strong>Cá nhân Liên hệ (Contact Pool)</strong> theo chuẩn
+                  DAT-04.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  onclick="switchScreen('import')"
+                  class="btn-secondary-hover px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-file-csv text-emerald-600"></i> Kiểm tra
+                  Lô CSV (Intake)
+                </button>
+                <button
+                  onclick="switchScreen('import')"
+                  class="btn-shimmer px-4 py-2 rounded-xl text-xs font-bold btn-glow flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-plus"></i> Kiểm tra Hồ sơ Mới
+                </button>
+              </div>
+            </div>
+
+            <!-- THANH CHUYỂN ĐỔI POOL DỮ LIỆU (POOL SWITCHER - CHUẨN DAT-04) -->
+            <div
+              class="p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-1.5"
+            >
+              <button
+                onclick="setPoolFilter('ACCOUNT')"
+                id="pool-ACCOUNT"
+                class="pool-btn btn-shimmer py-2.5 px-4 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all btn-glow text-white"
+              >
+                <span class="flex items-center gap-2">
+                  <i class="fa-solid fa-building"></i>
+                  <span>1. Hồ sơ Doanh nghiệp (Account Pool)</span>
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-md bg-black/25 font-mono text-[11px]"
+                  >2 Nguồn • 9,820</span
+                >
+              </button>
+
+              <button
+                onclick="setPoolFilter('CONTACT')"
+                id="pool-CONTACT"
+                class="pool-btn btn-shimmer py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-between transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
+              >
+                <span class="flex items-center gap-2">
+                  <i class="fa-solid fa-address-card"></i>
+                  <span>2. Hồ sơ Người liên hệ (Contact Pool)</span>
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 font-mono text-[11px]"
+                  >1 Nguồn • 5,000</span
+                >
+              </button>
+
+              <button
+                onclick="setPoolFilter('ALL')"
+                id="pool-ALL"
+                class="pool-btn btn-shimmer py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-between transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800"
+              >
+                <span class="flex items-center gap-2">
+                  <i class="fa-solid fa-layer-group"></i>
+                  <span>3. Tra cứu Tổng hợp (Cross-View)</span>
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 font-mono text-[11px]"
+                  >14,820 bản ghi</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <!-- THANH TÌM KIẾM ĐA TRƯỜNG & TAB LỌC TRẠNG THÁI REV-01 -->
+          <div class="bento-card p-4 space-y-3.5 wf-region">
+            <div
+              class="wf-annotation absolute -top-3 left-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+            >
+              <span
+                >[UI-06] Thanh Tìm kiếm Đa tiêu chí & Bộ lọc Trạng thái Xét
+                duyệt (REV-01)</span
+              >
+            </div>
+
+            <!-- Dải Tab Lọc Nhanh Trạng thái theo chuẩn REV-01 & REV-02 -->
+            <div
+              class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200/70 dark:border-slate-800"
+            >
+              <div
+                class="flex flex-wrap items-center gap-1.5"
+                id="status-pills"
+              >
+                <button
+                  onclick="setStatusTab('ALL')"
+                  data-tab="ALL"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-bold btn-glow text-white transition"
+                >
+                  Tất cả trạng thái
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-black/25 font-mono text-[11px]"
+                    >10</span
+                  >
+                </button>
+                <button
+                  onclick="setStatusTab('DUP')"
+                  data-tab="DUP"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                >
+                  🟠 Chờ duyệt & Tạm giữ
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono font-bold text-[11px]"
+                    >5</span
+                  >
+                </button>
+                <button
+                  onclick="setStatusTab('UNDER_REVIEW')"
+                  data-tab="UNDER_REVIEW"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                >
+                  🟡 Đang chờ duyệt (Under Review)
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-700 font-mono font-bold text-[11px]"
+                    >3</span
+                  >
+                </button>
+                <button
+                  onclick="setStatusTab('HELD_CONFLICT')"
+                  data-tab="HELD_CONFLICT"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                >
+                  🔴 Tạm giữ Xung đột (Held)
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-700 font-mono font-bold text-[11px]"
+                    >2</span
+                  >
+                </button>
+                <button
+                  onclick="setStatusTab('APPROVED_RELATIONSHIP')"
+                  data-tab="APPROVED_RELATIONSHIP"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                >
+                  🟣 Quan hệ Mẹ-Chi nhánh (Related)
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-700 font-mono font-bold text-[11px]"
+                    >2</span
+                  >
+                </button>
+                <button
+                  onclick="setStatusTab('APPROVED_DUPLICATE')"
+                  data-tab="APPROVED_DUPLICATE"
+                  class="status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition"
+                >
+                  🟢 Đã duyệt Crosswalk
+                  <span
+                    class="ml-1 px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-700 font-mono font-bold text-[11px]"
+                    >3</span
+                  >
+                </button>
+              </div>
+
+              <div
+                id="filter-result-count"
+                class="text-xs font-bold text-slate-600 dark:text-slate-300"
+              >
+                Hiển thị <strong>10</strong> bản ghi
+              </div>
+            </div>
+
+            <!-- Ô tìm kiếm & Bộ lọc -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+              <div class="md:col-span-6 relative">
+                <i
+                  class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                ></i>
+                <input
+                  type="text"
+                  id="search-input"
+                  oninput="filterCustomerTable()"
+                  placeholder="Tìm theo Mã Nguồn, Canonical ID, Tên Công ty/Liên hệ, MST (0314...), SĐT (+84/0...)..."
+                  class="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  onclick="resetFilters()"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                  title="Xóa tìm kiếm"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <div class="md:col-span-3">
+                <select
+                  id="filter-status"
+                  onchange="
+                    syncPillFromSelect();
+                    filterCustomerTable();
+                  "
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="ALL">Trạng thái REV-01: Tất cả</option>
+                  <option value="DUP">🟠 Tất cả Chờ duyệt & Tạm giữ</option>
+                  <option value="UNDER_REVIEW">
+                    🟡 Đang chờ duyệt (Under Review)
+                  </option>
+                  <option value="HELD_CONFLICT">
+                    🔴 Tạm giữ do Xung đột (Held)
+                  </option>
+                  <option value="APPROVED_RELATIONSHIP">
+                    🟣 Đã duyệt Quan hệ (Parent/Branch)
+                  </option>
+                  <option value="APPROVED_DUPLICATE">
+                    🟢 Đã duyệt Crosswalk (Canonical)
+                  </option>
+                </select>
+              </div>
+
+              <div class="md:col-span-3">
+                <select
+                  id="filter-source"
+                  onchange="filterCustomerTable()"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="ALL">Nguồn CSV (Package A): Tất cả</option>
+                  <option value="Account_ERP.csv">
+                    Account_ERP.csv (Nguồn 1)
+                  </option>
+                  <option value="Account_Service.csv">
+                    Account_Service.csv (Nguồn 2)
+                  </option>
+                  <option value="Contact_CRM.csv">
+                    Contact_CRM.csv (Nguồn 3)
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Gợi ý kịch bản kiểm thử Việt Nam (Annex G - VN-01 & VN-02) -->
+            <div
+              class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500"
+            >
+              <span class="font-bold text-slate-600 dark:text-slate-400"
+                ><i class="fa-solid fa-vial text-indigo-500 mr-1"></i>Kịch bản
+                Annex B & G:</span
+              >
+              <button
+                onclick="
+                  setPoolFilter('ALL');
+                  setSearchKeyword('0314892100');
+                "
+                class="btn-secondary-hover px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 font-mono font-semibold"
+              >
+                MST: 0314892100 (Đổi địa chỉ cũ/mới)
+              </button>
+              <button
+                onclick="
+                  setPoolFilter('ALL');
+                  setSearchKeyword('Bình Dương');
+                "
+                class="btn-secondary-hover px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-purple-50 hover:text-purple-600 font-semibold"
+              >
+                Công ty Mẹ vs. Nhà máy Bình Dương (-001)
+              </button>
+              <button
+                onclick="
+                  setPoolFilter('CONTACT');
+                  setSearchKeyword('0908123456');
+                "
+                class="btn-secondary-hover px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 font-mono font-semibold"
+              >
+                Liên hệ trùng SĐT (+84 / 0908...)
+              </button>
+              <button
+                onclick="resetFilters()"
+                class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline ml-1"
+              >
+                Khôi phục toàn bộ
+              </button>
+            </div>
+          </div>
+
+          <!-- BẢNG DỮ LIỆU KHÁCH HÀNG & CANONICAL CROSSWALK -->
+          <div class="bento-card overflow-hidden wf-region">
+            <div
+              class="wf-annotation absolute -top-3 right-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+            >
+              <span
+                >[UI-07] Bảng Dữ liệu Nguồn, Loại Thực thể (DAT-04), Canonical
+                Crosswalk & Nút Đối chiếu</span
+              >
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-slate-50/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                  >
+                    <th class="py-3.5 pl-4 pr-2 w-8">
+                      <input
+                        type="checkbox"
+                        class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        id="chk-all"
+                        title="Chọn tất cả"
+                        onchange="toggleAll(this.checked)"
+                      />
+                    </th>
+                    <th
+                      class="py-3.5 px-3 cursor-pointer select-none"
+                      onclick="sortTable('id')"
+                    >
+                      Source Key & Canonical ID
+                      <i
+                        id="sort-id"
+                        class="fa-solid fa-sort ml-1 text-slate-300"
+                      ></i>
+                    </th>
+                    <th
+                      class="py-3.5 px-3 cursor-pointer select-none"
+                      onclick="sortTable('name')"
+                    >
+                      Tên Thực thể & Phân loại (DAT-04)
+                      <i
+                        id="sort-name"
+                        class="fa-solid fa-sort ml-1 text-slate-300"
+                      ></i>
+                    </th>
+                    <th class="py-3.5 px-3">Định danh (MST / SĐT / Email)</th>
+                    <th class="py-3.5 px-3">
+                      Đơn vị / Địa chỉ & Thời hạn (DAT-07)
+                    </th>
+                    <th
+                      class="py-3.5 px-3 cursor-pointer select-none"
+                      onclick="sortTable('similarity')"
+                    >
+                      Điểm Xếp hạng & Trạng thái (REV-01)
+                      <i
+                        id="sort-similarity"
+                        class="fa-solid fa-sort ml-1 text-slate-300"
+                      ></i>
+                    </th>
+                    <th class="py-3.5 px-3 text-right pr-4">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="customer-table-body"
+                  class="divide-y divide-slate-200/70 dark:divide-slate-800 text-xs"
+                ></tbody>
+              </table>
+            </div>
+
+            <!-- THANH PHÂN TRANG -->
+            <div
+              class="px-4 py-3 bg-slate-50/80 dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400 wf-region"
+            >
+              <div
+                class="wf-annotation absolute -top-2.5 left-1/2 z-30 items-center gap-1 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow"
+              >
+                <span
+                  >[UI-08] Thanh Phân trang & Xuất Crosswalk Đã duyệt
+                  (B-06)</span
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <span>Hiển thị</span>
+                <select
+                  id="page-size"
+                  onchange="updatePager()"
+                  class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"
+                >
+                  <option value="10">10 dòng / trang</option>
+                  <option value="25">25 dòng / trang</option>
+                  <option value="50">50 dòng / trang</option>
+                </select>
+                <span class="text-slate-300">|</span>
+                <span id="pager-info"
+                  >Trang <strong>1</strong> trên <strong>1,482</strong></span
+                >
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button
+                  onclick="exportApprovedCrosswalk()"
+                  class="btn-secondary-hover px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 font-bold text-xs mr-2"
+                >
+                  <i class="fa-solid fa-download mr-1"></i> Xuất Crosswalk CSV
+                  (Loại trừ Held)
+                </button>
+                <button
+                  class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                >
+                  Trước
+                </button>
+                <button
+                  class="px-2.5 py-1 rounded-lg btn-glow text-white font-bold"
+                >
+                  1
+                </button>
+                <button
+                  class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100"
+                >
+                  2
+                </button>
+                <button
+                  class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100"
+                >
+                  3
+                </button>
+                <span class="px-1">...</span>
+                <button
+                  id="pager-last"
+                  class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100"
+                >
+                  1,482
+                </button>
+                <button
+                  class="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100"
+                >
+                  Tiếp
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================================
+           MÀN HÌNH 3: KIỂM TRA ĐẦU VÀO & MÔ PHỎNG PHÁT HIỆN (PACKAGE A & B)
+           ===================================================================== -->
+        <section id="screen-import" class="space-y-6 hidden">
+          <div
+            class="bento-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+              >
+                Màn hình 3 / 3 • Controlled Intake & Candidate Evidence
+                Simulator (DAT-01..05)
+              </span>
+              <h1
+                class="text-lg font-extrabold text-slate-900 dark:text-white mt-1"
+              >
+                Tiếp nhận Lô Dữ liệu (Controlled Batch Intake) & Kiểm tra Ứng
+                viên Tức thì
+              </h1>
+              <p class="text-xs text-slate-500">
+                Kiểm tra 3 kịch bản chuẩn Annex B (Trùng doanh nghiệp đổi địa
+                chỉ, Công ty Mẹ vs. Chi nhánh nhà máy, và Hồ sơ mới hợp lệ).
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onclick="fillDuplicateSample()"
+                class="btn-secondary-hover px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300"
+              >
+                <i class="fa-solid fa-clone mr-1"></i> Kịch bản A: Trùng DN
+                (94%)
+              </button>
+              <button
+                onclick="fillBranchSample()"
+                class="btn-secondary-hover px-3 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-800 border border-purple-300"
+              >
+                <i class="fa-solid fa-sitemap mr-1"></i> Kịch bản B: Công ty Mẹ
+                & Chi nhánh (-001)
+              </button>
+              <button
+                onclick="fillCleanSample()"
+                class="btn-secondary-hover px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300"
+              >
+                <i class="fa-solid fa-check mr-1"></i> Kịch bản C: Hồ sơ Sạch
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- CỘT TRÁI: MÔ PHỎNG CHUẨN HÓA & SO KHỚP ỨNG VIÊN TRỰC TIẾP -->
+            <div class="lg:col-span-7 bento-card p-6 space-y-5 wf-region">
+              <div
+                class="wf-annotation absolute -top-3 left-4 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+              >
+                <span
+                  >[UI-09] Trình Mô phỏng Chuẩn hóa Tiếng Việt (DAT-05) & Giải
+                  thích Điểm (MAT-03)</span
+                >
+              </div>
+
+              <div
+                class="flex items-center justify-between border-b border-slate-200/70 dark:border-slate-800 pb-3"
+              >
+                <div>
+                  <h2
+                    class="text-sm font-extrabold text-slate-900 dark:text-white"
+                  >
+                    1. Kiểm tra Hồ sơ Đầu vào & Giải thích Bằng chứng
+                    (Explainable Detection)
+                  </h2>
+                  <p class="text-xs text-slate-500">
+                    Giữ nguyên giá trị gốc (Raw Value) và số 0 ở đầu; hiển thị
+                    rõ thành phần điểm & cờ xung đột
+                  </p>
+                </div>
+                <span
+                  class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                >
+                  Rule Engine v2.4
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label
+                    class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Tên Pháp lý / Tên Giao dịch
+                    <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="inp-name"
+                    oninput="checkRealtimeDuplicate()"
+                    type="text"
+                    value="Cong ty CP Co khi Chinh xac Dai Nam"
+                    class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold"
+                  />
+                  <span class="text-[11px] text-slate-400 mt-1 block">
+                    Chuẩn hóa (DAT-05):
+                    <strong
+                      id="name-norm"
+                      class="font-mono text-slate-600 dark:text-slate-300"
+                      >cong ty cp co khi chinh xac dai nam</strong
+                    >
+                  </span>
+                </div>
+
+                <div>
+                  <label
+                    class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Mã số thuế / Mã Chi nhánh (DAT-06)
+                  </label>
+                  <input
+                    id="inp-tax"
+                    oninput="checkRealtimeDuplicate()"
+                    type="text"
+                    value="0314892100"
+                    class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    placeholder="VD: 0314892100 hoặc 0314892100-001"
+                  />
+                  <span class="text-[11px] text-slate-400 mt-1 block">
+                    Bảo toàn số <code class="font-mono">0</code> ở đầu & hậu tố
+                    nhánh <code class="font-mono">-001</code>
+                  </span>
+                </div>
+
+                <div>
+                  <label
+                    class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Số điện thoại Liên hệ / Tổng đài
+                    <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="inp-phone"
+                    oninput="checkRealtimeDuplicate()"
+                    type="text"
+                    value="+84 28 3811 2233"
+                    class="w-full px-3.5 py-2 rounded-xl border border-amber-400 bg-amber-50/30 dark:bg-slate-900 font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                  <span
+                    class="text-[11px] text-amber-700 dark:text-amber-400 mt-1 block"
+                  >
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Chuẩn hóa
+                    VN:
+                    <strong id="phone-norm" class="font-mono"
+                      >02838112233</strong
+                    >
+                  </span>
+                </div>
+
+                <div>
+                  <label
+                    class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >Địa chỉ Email / Tên miền</label
+                  >
+                  <input
+                    id="inp-email"
+                    oninput="checkRealtimeDuplicate()"
+                    type="email"
+                    value="sales@dainam-mech.vn"
+                    class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+
+                <div class="sm:col-span-2">
+                  <label
+                    class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >Địa chỉ Nhà máy / Văn phòng (Hỗ trợ đối chiếu địa chỉ
+                    cũ/mới)</label
+                  >
+                  <input
+                    id="inp-company"
+                    oninput="checkRealtimeDuplicate()"
+                    type="text"
+                    value="Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM"
+                    class="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- BẢNG PHÂN RÃ ĐIỂM XẾP HẠNG TRỰC TIẾP (MAT-03 EXPLAINABLE RANKING) -->
+              <div
+                class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs"
+              >
+                <div class="flex items-center justify-between">
+                  <span
+                    class="font-extrabold text-slate-700 dark:text-slate-200 uppercase text-[11px] tracking-wider"
+                  >
+                    <i
+                      class="fa-solid fa-scale-balanced mr-1 text-indigo-500"
+                    ></i
+                    >Thành phần Điểm Xếp hạng (MAT-03 Ranking Value Breakdown)
+                  </span>
+                  <span
+                    id="live-total-score"
+                    class="font-mono font-extrabold text-sm text-rose-600"
+                    >Ranking Score: 94 / 100</span
+                  >
+                </div>
+                <div
+                  id="live-score-bars"
+                  class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1"
+                ></div>
+              </div>
+
+              <!-- HỘP CẢNH BÁO PHÁT HIỆN TRÙNG HOẶC QUAN HỆ MẸ-CHI NHÁNH -->
+              <div
+                id="realtime-warning-box"
+                class="p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700 space-y-3 wf-region"
+              >
+                <div
+                  class="wf-annotation absolute -top-3 right-3 z-30 items-center gap-1 bg-rose-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow"
+                >
+                  <span
+                    >[UI-10] Khung Đề xuất Quyết định (Phân biệt Duplicate vs.
+                    Parent-Branch)</span
+                  >
+                </div>
+                <div id="dup-dyn"></div>
+              </div>
+
+              <!-- Hộp báo hợp lệ -->
+              <div
+                id="realtime-clean-box"
+                class="hidden p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3 text-xs text-emerald-900 dark:text-emerald-200"
+              >
+                <i
+                  class="fa-solid fa-circle-check text-emerald-600 text-lg"
+                ></i>
+                <div>
+                  <strong
+                    >Không phát hiện trùng lặp (Đạt chuẩn tạo mới):</strong
+                  >
+                  Điểm tương đồng thấp hơn ngưỡng 65%. Bản ghi sẽ được cấp
+                  Canonical ID độc lập sau khi duyệt.
+                </div>
+              </div>
+
+              <div
+                class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5"
+              >
+                <button
+                  onclick="switchScreen('customers')"
+                  class="btn-secondary-hover px-4 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onclick="saveCustomer()"
+                  class="btn-shimmer px-5 py-2 rounded-xl text-xs font-bold btn-glow flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-paper-plane"></i> Đề xuất vào Hàng đợi
+                  Review (Steward Propose)
+                </button>
+              </div>
+            </div>
+
+            <!-- CỘT PHẢI: KIỂM SOÁT 3 NGUỒN FILE CSV ĐẦU VÀO (PACKAGE A & DAT-02) -->
+            <div class="lg:col-span-5 bento-card p-6 space-y-4 wf-region">
+              <div
+                class="wf-annotation absolute -top-3 right-3 z-30 items-center gap-1 bg-indigo-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg"
+              >
+                <span
+                  >[UI-11] Bộ Kiểm định 3 Schema CSV Đầu vào & Cách ly Dòng lỗi
+                  (DAT-02)</span
+                >
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2
+                    class="text-sm font-extrabold text-slate-900 dark:text-white"
+                  >
+                    2. Kiểm soát 3 Nguồn CSV Đầu vào (Package A Intake)
+                  </h2>
+                  <p class="text-xs text-slate-500">
+                    Xác thực khóa bất biến (Stable Keys), cách ly dòng lỗi
+                    (Quarantine) và gắn Manifest
+                  </p>
+                </div>
+                <span
+                  class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold"
+                  >Snapshot #2026-11-11</span
+                >
+              </div>
+
+              <!-- 3 Thẻ Nguồn CSV theo đúng Section 2 RFP -->
+              <div class="space-y-2.5 text-xs">
+                <div
+                  class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5"
+                >
+                  <div class="flex items-center justify-between">
+                    <span
+                      class="font-bold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <i class="fa-solid fa-file-csv text-indigo-600"></i> 1.
+                      Account_Export_ERP.csv
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"
+                      >4,920 / 5,000 rows</span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center justify-between text-[11px] text-slate-500 font-mono"
+                  >
+                    <span>Pool: Business Account</span>
+                    <span
+                      >Accepted: 4,912 •
+                      <strong class="text-rose-600"
+                        >Quarantined: 8</strong
+                      ></span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5"
+                >
+                  <div class="flex items-center justify-between">
+                    <span
+                      class="font-bold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <i class="fa-solid fa-file-csv text-indigo-600"></i> 2.
+                      Account_Export_Service.csv
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"
+                      >4,900 / 5,000 rows</span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center justify-between text-[11px] text-slate-500 font-mono"
+                  >
+                    <span>Pool: Business Account</span>
+                    <span
+                      >Accepted: 4,895 •
+                      <strong class="text-amber-600"
+                        >Bad Optional ID: 14</strong
+                      ></span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5"
+                >
+                  <div class="flex items-center justify-between">
+                    <span
+                      class="font-bold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <i class="fa-solid fa-file-csv text-sky-600"></i> 3.
+                      Contact_Export_CRM.csv
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-700"
+                      >5,000 / 5,000 rows</span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center justify-between text-[11px] text-slate-500 font-mono"
+                  >
+                    <span>Pool: Business Contact</span>
+                    <span
+                      >Accepted: 4,996 •
+                      <strong class="text-rose-600"
+                        >Dup Source Key: 4</strong
+                      ></span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quy tắc DAT-02 & DAT-05 -->
+              <div
+                class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs"
+              >
+                <div class="font-bold text-slate-700 dark:text-slate-200">
+                  Kiểm soát Chất lượng Lô Nhập (DAT-02 & DAT-05):
+                </div>
+                <div
+                  class="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400"
+                >
+                  <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
+                    <span
+                      >Giữ lại bản ghi có trường phụ lỗi (Bad optional field)
+                      nhưng gắn cờ không dùng trường đó làm bằng chứng.</span
+                    >
+                  </div>
+                  <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-check text-emerald-500 mt-0.5"></i>
+                    <span
+                      >Cách ly (Quarantine) 12 dòng lỗi cú pháp hoặc trùng khóa
+                      nguồn (Duplicate Source Key).</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onclick="
+                  showToast(
+                    'Đã xác nhận Snapshot Manifest #2026-11-11 (14,803 bản ghi hợp lệ, 12 dòng cách ly)!',
+                  )
+                "
+                class="btn-shimmer w-full py-2.5 rounded-xl btn-glow font-bold text-xs"
+              >
+                <i class="fa-solid fa-bolt mr-1"></i> Chạy Đối soát Lô Ngày
+                (Daily Snapshot Run)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================================
+           MÀN HÌNH 4: ĐẶC TẢ UI & ĐỐI CHIẾU CHUẨN RFP SONGNHAT (KAN-8 DELIVERABLE)
+           ===================================================================== -->
+        <section id="screen-specs" class="space-y-6 hidden">
+          <div class="bento-card p-5 space-y-1.5">
+            <span
+              class="text-[11px] font-bold uppercase tracking-wider text-indigo-600"
+            >
+              Tài liệu Nghiệm thu Nhiệm vụ KAN-8 • Bám sát SongNhat RFP
+            </span>
+            <h1 class="text-lg font-extrabold text-slate-900 dark:text-white">
+              Nghiên cứu Hệ thống CRM Tương tự & Ma trận Ánh xạ Yêu cầu RFP
+              SongNhat
+            </h1>
+            <p class="text-xs text-slate-500">
+              Đáp ứng trọn vẹn 4 tiêu chí hoàn thành của thẻ
+              <strong>KAN-8</strong> và ánh xạ trực tiếp tới từng mã yêu cầu
+              trong RFP (DAT, MAT, REV, AT).
+            </p>
+          </div>
+
+          <div class="bento-card p-5 space-y-4">
+            <h2
+              class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"
+            >
+              <span
+                class="w-6 h-6 rounded-lg btn-glow text-white text-xs flex items-center justify-center"
+                >1</span
+              >
+              Nghiên cứu Giao diện các Hệ thống CRM Tương tự (Benchmarking)
+            </h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 font-bold"
+                  >
+                    <th class="p-3">Hệ thống Tham chiếu</th>
+                    <th class="p-3">Ưu điểm Giao diện Danh sách & Tìm kiếm</th>
+                    <th class="p-3">Cơ chế Kiểm soát Trùng lặp</th>
+                    <th class="p-3">Điểm tùy biến theo SongNhat RFP (AI-13)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                  <tr>
+                    <td class="p-3 font-bold">HubSpot CRM</td>
+                    <td class="p-3">
+                      Bảng dữ liệu trực quan, có dải Tab lọc nhanh trạng thái
+                      (Status Pills) kèm số đếm.
+                    </td>
+                    <td class="p-3">
+                      Gom nhóm các cặp nghi trùng kèm điểm tương đồng để nhân
+                      viên duyệt.
+                    </td>
+                    <td
+                      class="p-3 text-indigo-600 dark:text-indigo-400 font-bold"
+                    >
+                      Bổ sung tách biệt Account Pool & Contact Pool (DAT-04),
+                      cấm gộp tự động (MAT-08).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">Salesforce Lightning</td>
+                    <td class="p-3">
+                      Có thẻ KPI tổng quan và ngăn kéo đối chiếu song song
+                      (Side-by-Side Drawer).
+                    </td>
+                    <td class="p-3">
+                      Hiển thị cảnh báo Potential Duplicates và phân cấp Tài
+                      khoản Mẹ - Chi nhánh.
+                    </td>
+                    <td
+                      class="p-3 text-indigo-600 dark:text-indigo-400 font-bold"
+                    >
+                      Áp dụng 4 nhóm quyết định (REV-02): Cùng thực thể, Liên
+                      quan (Mẹ/Nhánh), Khác biệt, Hoãn.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-bold">Zoho CRM & Attio</td>
+                    <td class="p-3">
+                      Kiểm soát luồng Import CSV chặt chẽ, hiển thị chi tiết
+                      trường bị xung đột.
+                    </td>
+                    <td class="p-3">
+                      Cho phép chọn quy tắc ưu tiên trường dữ liệu chuẩn (Field
+                      Precedence).
+                    </td>
+                    <td
+                      class="p-3 text-indigo-600 dark:text-indigo-400 font-bold"
+                    >
+                      Áp dụng quy trình 2 cấp: Steward đề xuất &rarr; Approver
+                      phê duyệt độc lập (REV-03).
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bento-card p-5 space-y-4">
+            <h2
+              class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2"
+            >
+              <span
+                class="w-6 h-6 rounded-lg btn-glow text-white text-xs flex items-center justify-center"
+                >2</span
+              >
+              Bảng Mô tả Thành phần Giao diện & Ánh xạ Mã Yêu cầu SongNhat RFP
+            </h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 font-bold"
+                  >
+                    <th class="p-3 w-24">Mã UI</th>
+                    <th class="p-3 w-40">Mã RFP Đáp ứng</th>
+                    <th class="p-3 w-52">Tên Thành phần</th>
+                    <th class="p-3">
+                      Mô tả Nghiệp vụ Chuẩn hóa theo Hồ sơ SongNhat
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-01, 02]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      REV-03, REV-08, SEC-01
+                    </td>
+                    <td class="p-3 font-bold">Sidebar & Role Switcher</td>
+                    <td class="p-3">
+                      Điều hướng 3 màn hình chính; tích hợp nút chuyển đổi vai
+                      trò <strong>Steward / Approver</strong> để chứng minh
+                      nguyên tắc cấm tự phê duyệt (No self-approval).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-03, 03B]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      Pkg A..D, AT-01, NFR-01
+                    </td>
+                    <td class="p-3 font-bold">KPI Cards & Pilot Limits</td>
+                    <td class="p-3">
+                      Hiển thị giới hạn Pilot (14,820/15,000 bản ghi;
+                      42,150/200,000 cặp ứng viên), Canonical Crosswalk và sơ đồ
+                      kiến trúc 4 gói công việc.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-04, 05]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      MAT-03, VN-01, VN-02
+                    </td>
+                    <td class="p-3 font-bold">Biểu đồ Batch & Donut</td>
+                    <td class="p-3">
+                      Phân tích lưu lượng lô quét 6 tháng và tỷ trọng bằng chứng
+                      (tách biệt Trùng thực thể với Quan hệ Công ty mẹ - Chi
+                      nhánh).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-06]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      DAT-04, DAT-05, REV-01
+                    </td>
+                    <td class="p-3 font-bold">Pool Switcher & Search</td>
+                    <td class="p-3">
+                      Chuyển đổi tách biệt <strong>Account Pool</strong> (2 CSV)
+                      và <strong>Contact Pool</strong> (1 CSV); tìm kiếm tiếng
+                      Việt có/không dấu, bảo toàn số 0 ở đầu.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-07, 08]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      REV-05, REV-06, B-06
+                    </td>
+                    <td class="p-3 font-bold">Bảng Crosswalk & Export</td>
+                    <td class="p-3">
+                      Hiển thị Source Key bất biến, Canonical ID, nhãn loại thực
+                      thể (<code class="font-mono"
+                        >COMPANY/BRANCH/SITE/CONTACT</code
+                      >) và xuất CSV loại trừ bản ghi đang tạm giữ (Held).
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono font-bold text-indigo-600">
+                      [UI-09..11]
+                    </td>
+                    <td class="p-3 font-mono font-semibold text-rose-600">
+                      DAT-01..03, MAT-04..06
+                    </td>
+                    <td class="p-3 font-bold">Intake Validator & Simulator</td>
+                    <td class="p-3">
+                      Kiểm tra 3 nguồn CSV đầu vào, báo cáo số dòng cách ly
+                      (Quarantine) và mô phỏng so khớp giải thích rõ điểm xếp
+                      hạng (Explainable Ranking).
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ==================== 3. SLIDE-OVER MODAL: ĐỐI CHIẾU SIDE-BY-SIDE & PHÊ DUYỆT ĐỘC LẬP (PKG C) ==================== -->
+    <div
+      id="compare-modal"
+      role="dialog"
+      aria-modal="true"
+      onclick="if (event.target === this) closeCompareModal();"
+      class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-end"
+    >
+      <div
+        class="w-full max-w-3xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col justify-between overflow-y-auto"
+      >
+        <div
+          class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950"
+        >
+          <div>
+            <div class="flex items-center gap-2">
+              <span
+                class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-bold"
+              >
+                Package C • Side-by-Side Evidence Review
+              </span>
+              <span
+                id="modal-role-badge"
+                class="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold"
+              >
+                Đang thao tác: Data Steward
+              </span>
+            </div>
+            <h3
+              id="compare-title"
+              class="text-base font-extrabold text-slate-900 dark:text-white mt-1"
+            >
+              Đối chiếu Bằng chứng Nguồn & Quyết định Phân giải Thực thể
+              (REV-02)
+            </h3>
+          </div>
+          <button
+            onclick="closeCompareModal()"
+            class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-800 flex items-center justify-center"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div
+          id="compare-modal-body"
+          class="p-6 space-y-5 flex-1 overflow-y-auto text-xs"
+        ></div>
+
+        <div
+          class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-wrap items-center justify-between gap-3"
+        >
+          <div class="text-[11px] text-slate-500">
+            <i class="fa-solid fa-shield-halved text-emerald-600 mr-1"></i>
+            <strong>REV-08:</strong> Chỉ ghi nhận vào Sổ đăng ký Crosswalk,
+            không xóa/gộp bản ghi CRM gốc.
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              onclick="closeCompareModal()"
+              class="btn-secondary-hover px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+            >
+              Đóng lại
+            </button>
+            <button
+              id="btn-steward-propose"
+              onclick="submitStewardProposal()"
+              class="btn-shimmer px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+            >
+              <i class="fa-solid fa-paper-plane mr-1"></i> 1. Steward Gửi Đề
+              xuất
+            </button>
+            <button
+              id="btn-approver-activate"
+              onclick="submitApproverActivation()"
+              class="btn-shimmer px-4 py-2 rounded-xl text-xs font-bold btn-glow"
+            >
+              <i class="fa-solid fa-check-double mr-1"></i> 2. Approver Phê
+              duyệt Độc lập (REV-03)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div
+      id="toast-box"
+      role="status"
+      aria-live="polite"
+      class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs flex items-center gap-2.5"
+    >
+      <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+      <span id="toast-message">Đã thực hiện thao tác thành công!</span>
+    </div>
+
+    <!-- ==================== 4. JAVASCRIPT ENGINE (RFP-COMPLIANT v6.0) ==================== -->
+    <script>
+      // Dữ liệu chuẩn hóa theo đúng bối cảnh Công nghiệp SongNhat (Annex B & Annex G)
+      // Tách biệt rõ ACCOUNT pool (2 nguồn CSV) và CONTACT pool (1 nguồn CSV)
+      const CUSTOMERS = [
+        {
+          id: "ACC-ERP-1042",
+          canonicalId: "CAN-ACC-8801 (Pending)",
+          pool: "ACCOUNT",
+          entitySubtype: "COMPANY (Công ty Mẹ)",
+          name: "Công ty Cổ phần Cơ khí Chính xác Đại Nam",
+          taxId: "0314892100",
+          phone: "02838112233",
+          email: "sales@dainam-mech.vn",
+          company: "Ngành: Thiết bị & Gia công Cơ khí Công nghiệp",
+          address:
+            "Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM (Địa chỉ mới 2026)",
+          effectiveDate: "Hiệu lực: 01/2025 – Nay",
+          source: "Account_ERP.csv",
+          status: "UNDER_REVIEW",
+          similarity: 94,
+          duplicateWith: "ACC-SRV-2089",
+          duplicateReason:
+            "Khớp MST 0314892100 + Tên Pháp lý (Đổi địa chỉ cũ/mới - Ex A)",
+          proposedCategory: "SAME_ENTITY",
+          duplicateCandidate: {
+            id: "ACC-SRV-2089",
+            name: "CTCP Co khi Chinh xac Dai Nam",
+            taxId: "0314892100",
+            phone: "+84 28 3811 2233",
+            email: "info@dainam-mech.vn",
+            company: "Cơ khí Chính xác Đại Nam",
+            address:
+              "142 Cộng Hòa, Phường 4, Quận Tân Bình, TP.HCM (Địa chỉ cũ 2022)",
+            source: "Account_Service.csv",
+          },
+        },
+        {
+          id: "ACC-SRV-2089",
+          canonicalId: "CAN-ACC-8801 (Pending)",
+          pool: "ACCOUNT",
+          entitySubtype: "COMPANY (Công ty Mẹ)",
+          name: "CTCP Co khi Chinh xac Dai Nam",
+          taxId: "0314892100",
+          phone: "+842838112233",
+          email: "info@dainam-mech.vn",
+          company: "Ngành: Dịch vụ Bảo trì Máy công nghiệp",
+          address: "142 Cộng Hòa, P.4, Quận Tân Bình, TP.HCM (Địa chỉ cũ)",
+          effectiveDate: "Hiệu lực: 2021 – 2024",
+          source: "Account_Service.csv",
+          status: "UNDER_REVIEW",
+          similarity: 94,
+          duplicateWith: "ACC-ERP-1042",
+          duplicateReason: "Khớp MST 0314892100 + SĐT tổng đài (+84)",
+          proposedCategory: "SAME_ENTITY",
+          duplicateCandidate: {
+            id: "ACC-ERP-1042",
+            name: "Công ty Cổ phần Cơ khí Chính xác Đại Nam",
+            taxId: "0314892100",
+            phone: "02838112233",
+            email: "sales@dainam-mech.vn",
+            company: "Công ty Cổ phần Cơ khí Chính xác Đại Nam",
+            address: "Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM",
+            source: "Account_ERP.csv",
+          },
+        },
+        {
+          id: "ACC-ERP-1055",
+          canonicalId: "CAN-ACC-8802 (Linked)",
+          pool: "ACCOUNT",
+          entitySubtype: "BRANCH / SITE (Nhà máy)",
+          name: "Công ty CP Cơ khí Đại Nam — Chi nhánh Nhà máy Bình Dương",
+          taxId: "0314892100-001",
+          phone: "02838112233",
+          email: "plant.bd@dainam-mech.vn",
+          company: "Đơn vị trực thuộc: CTCP Cơ khí Chính xác Đại Nam",
+          address: "Đường số 6, KCN VSIP 1, TP. Thuận An, Bình Dương",
+          effectiveDate: "Hiệu lực: 06/2023 – Nay",
+          source: "Account_ERP.csv",
+          status: "APPROVED_RELATIONSHIP",
+          similarity: 82,
+          duplicateWith: "ACC-ERP-1042",
+          duplicateReason:
+            "Chung gốc MST & Tổng đài nhưng là Chi nhánh (-001) • Cấm gộp (Ex B)",
+          proposedCategory: "RELATED_DISTINCT",
+          duplicateCandidate: {
+            id: "ACC-ERP-1042",
+            name: "Công ty Cổ phần Cơ khí Chính xác Đại Nam (Trụ sở chính)",
+            taxId: "0314892100",
+            phone: "02838112233",
+            email: "sales@dainam-mech.vn",
+            company: "Trụ sở chính TP.HCM",
+            address: "Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM",
+            source: "Account_ERP.csv",
+          },
+        },
+        {
+          id: "ACC-ERP-1074",
+          canonicalId: "HELD-CONFLICT-09",
+          pool: "ACCOUNT",
+          entitySubtype: "COMPANY (Doanh nghiệp)",
+          name: "Công ty TNHH Thiết bị Thủy lực Á Châu",
+          taxId: "0309887766",
+          phone: "02839998888",
+          email: "contact@achau-hydraulics.vn",
+          company: "Ngành: Van & Bơm Thủy lực Công nghiệp",
+          address: "KCN Hiệp Phước, Huyện Nhà Bè, TP.HCM",
+          effectiveDate: "Hiệu lực: 2022 – Nay",
+          source: "Account_ERP.csv",
+          status: "HELD_CONFLICT",
+          similarity: 79,
+          duplicateWith: "ACC-SRV-2099",
+          duplicateReason:
+            "Trùng Tên giao dịch & SĐT nhưng XUNG ĐỘT Mã số thuế (MAT-05 Block)",
+          proposedCategory: "INSUFFICIENT",
+          duplicateCandidate: {
+            id: "ACC-SRV-2099",
+            name: "Công ty TNHH Thiết bị Thủy lực Á Châu",
+            taxId: "3702554411 (MST Bình Dương - Xung đột!)",
+            phone: "02839998888",
+            email: "service@achau-hydraulics.vn",
+            company: "Thủy lực Á Châu",
+            address: "KCN Hiệp Phước, Nhà Bè, TP.HCM",
+            source: "Account_Service.csv",
+          },
+        },
+        {
+          id: "ACC-SRV-2099",
+          canonicalId: "HELD-CONFLICT-09",
+          pool: "ACCOUNT",
+          entitySubtype: "SITE (Kho / Xưởng dịch vụ)",
+          name: "Công ty TNHH Thiết bị Thủy lực Á Châu (Xưởng Dịch vụ)",
+          taxId: "3702554411",
+          phone: "02839998888",
+          email: "service@achau-hydraulics.vn",
+          company: "Ngành: Bảo dưỡng Hệ thống Thủy lực",
+          address: "KCN Sóng Thần 2, TP. Dĩ An, Bình Dương",
+          effectiveDate: "Hiệu lực: 2024 – Nay",
+          source: "Account_Service.csv",
+          status: "HELD_CONFLICT",
+          similarity: 79,
+          duplicateWith: "ACC-ERP-1074",
+          duplicateReason:
+            "Xung đột MST (0309887766 vs 3702554411) • Đã khóa kích hoạt tự động",
+          proposedCategory: "RELATED_DISTINCT",
+          duplicateCandidate: {
+            id: "ACC-ERP-1074",
+            name: "Công ty TNHH Thiết bị Thủy lực Á Châu",
+            taxId: "0309887766",
+            phone: "02839998888",
+            email: "contact@achau-hydraulics.vn",
+            company: "Thủy lực Á Châu",
+            address: "KCN Hiệp Phước, Huyện Nhà Bè, TP.HCM",
+            source: "Account_ERP.csv",
+          },
+        },
+        {
+          id: "ACC-ERP-1061",
+          canonicalId: "CAN-ACC-8810",
+          pool: "ACCOUNT",
+          entitySubtype: "COMPANY (Công ty Mẹ)",
+          name: "Công ty Cổ phần Tự động hóa Công nghiệp Việt Nhật",
+          taxId: "0312445588",
+          phone: "02837776655",
+          email: "info@vina-automation.vn",
+          company: "Ngành: PLC, Biến tần & Cảm biến Công nghiệp",
+          address: "Khu Công nghệ cao, TP. Thủ Đức, TP.HCM",
+          effectiveDate: "Hiệu lực: 2020 – Nay",
+          source: "Account_ERP.csv",
+          status: "APPROVED_DUPLICATE",
+          similarity: 12,
+          duplicateWith: null,
+          duplicateReason:
+            "Định danh chuẩn đã duyệt (Approved Canonical Entity)",
+          proposedCategory: "SAME_ENTITY",
+        },
+        {
+          id: "ACC-SRV-2105",
+          canonicalId: "CAN-ACC-8815",
+          pool: "ACCOUNT",
+          entitySubtype: "SITE (Nhà máy Sản xuất)",
+          name: "Nhà máy Thép Công nghiệp Nam Việt — Chi nhánh Long An",
+          taxId: "1101889922-002",
+          phone: "02723889900",
+          email: "longan.plant@namvietsteel.vn",
+          company: "Liên kết Mẹ-Con với: Tập đoàn Thép Nam Việt (CAN-ACC-8814)",
+          address: "KCN Phú An Thạnh, Huyện Bến Lức, Long An",
+          effectiveDate: "Hiệu lực: 2022 – Nay",
+          source: "Account_Service.csv",
+          status: "APPROVED_RELATIONSHIP",
+          similarity: 74,
+          duplicateWith: "ACC-ERP-1012",
+          duplicateReason:
+            "Đã duyệt liên kết Nhà máy trực thuộc (Approved Site Relationship)",
+          proposedCategory: "RELATED_DISTINCT",
+        },
+        // ==================== POOL 2: HỒ SƠ CÁ NHÂN LIÊN HỆ (CONTACT POOL - DAT-04) ====================
+        {
+          id: "CON-CRM-3012",
+          canonicalId: "CAN-PER-5001 (Pending)",
+          pool: "CONTACT",
+          entitySubtype: "CONTACT (Trưởng phòng Mua hàng)",
+          name: "Nguyễn Minh Tuấn",
+          taxId: "CCCD/ID: N/A",
+          phone: "0908123456",
+          email: "tuan.nm@dainam-mech.vn",
+          company: "Đơn vị công tác (2024–Nay): CTCP Cơ khí Chính xác Đại Nam",
+          address: "Quận Tân Phú, TP.HCM",
+          effectiveDate: "Affiliation: 03/2024 – Nay",
+          source: "Contact_CRM.csv",
+          status: "UNDER_REVIEW",
+          similarity: 91,
+          duplicateWith: "CON-CRM-3088",
+          duplicateReason:
+            "Khớp SĐT chuẩn hóa (0908123456) + Họ tên không dấu + Cùng công ty",
+          proposedCategory: "SAME_ENTITY",
+          duplicateCandidate: {
+            id: "CON-CRM-3088",
+            name: "Nguyen Minh Tuan (Mr. Tuan)",
+            taxId: "CCCD/ID: N/A",
+            phone: "+84 908 123 456",
+            email: "tuan.nguyen@dainam-mech.vn",
+            company: "CTCP Co khi Chinh xac Dai Nam",
+            address: "KCN Tân Bình, TP.HCM",
+            source: "Contact_CRM.csv",
+          },
+        },
+        {
+          id: "CON-CRM-3045",
+          canonicalId: "CAN-PER-5018",
+          pool: "CONTACT",
+          entitySubtype: "CONTACT (Kỹ sư Trưởng)",
+          name: "Trần Thị Thu Hà",
+          taxId: "Mã NV: VN-882",
+          phone: "0912345678",
+          email: "info@dainam-mech.vn (Hộp thư dùng chung - MAT-04)",
+          company:
+            "Đơn vị: Nhà máy Đại Nam Bình Dương (Trước 2024: Thủy lực Á Châu)",
+          address: "TP. Thuận An, Bình Dương",
+          effectiveDate: "Affiliation: 2024 – Nay (Đã chuyển công ty - DAT-07)",
+          source: "Contact_CRM.csv",
+          status: "APPROVED_DUPLICATE",
+          similarity: 68,
+          duplicateWith: null,
+          duplicateReason:
+            "Email info@ dùng chung không tự chứng minh trùng người (MAT-04)",
+          proposedCategory: "DISTINCT",
+        },
+        {
+          id: "CON-CRM-3099",
+          canonicalId: "CAN-PER-5022",
+          pool: "CONTACT",
+          entitySubtype: "CONTACT (Giám đốc Kỹ thuật)",
+          name: "Lê Hoàng Nam",
+          taxId: "Mã NV: VJ-104",
+          phone: "0933445566",
+          email: "nam.lh@vina-automation.vn",
+          company: "Đơn vị: CTCP Tự động hóa Công nghiệp Việt Nhật",
+          address: "TP. Thủ Đức, TP.HCM",
+          effectiveDate: "Affiliation: 2021 – Nay",
+          source: "Contact_CRM.csv",
+          status: "APPROVED_DUPLICATE",
+          similarity: 9,
+          duplicateWith: null,
+          duplicateReason:
+            "Hồ sơ Liên hệ Cá nhân Chuẩn (Approved Canonical Person)",
+          proposedCategory: "SAME_ENTITY",
+        },
+      ];
+
+      const norm = (s) =>
+        String(s || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/g, "d");
+      const normPhone = (s) =>
+        String(s || "")
+          .replace(/[^\d+]/g, "")
+          .replace(/^\+?84/, "0");
+      const toks = (s) =>
+        norm(s)
+          .split(/[^a-z0-9]+/)
+          .filter(Boolean);
+      const tokSim = (a, b) => {
+        const A = new Set(toks(a)),
+          B = new Set(toks(b));
+        if (!A.size || !B.size) return 0;
+        let i = 0;
+        A.forEach((x) => {
+          if (B.has(x)) i++;
+        });
+        return Math.round((i / (A.size + B.size - i)) * 100);
+      };
+      const fmt = (n) => n.toLocaleString("en-US");
+      const val = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value : "";
+      };
+
+      let currentPool = "ACCOUNT",
+        currentRole = "STEWARD",
+        sortKey = null,
+        sortDir = 1,
+        toastTimer = null,
+        dupConfirmed = false,
+        activeModalId = null;
+
+      // Highlight từ khóa tìm kiếm trên bảng
+      function highlightText(text, kw) {
+        const str = String(text || "");
+        if (!kw || kw.length < 2) return str;
+        const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(`(${escaped})`, "gi");
+        return str.replace(re, '<mark class="hl">$1</mark>');
+      }
+
+      // Chuyển đổi Vai trò Steward / Approver (Chuẩn REV-03)
+      function toggleUserRole() {
+        currentRole = currentRole === "STEWARD" ? "APPROVER" : "STEWARD";
+        const label = document.getElementById("label-role-state");
+        const badge = document.getElementById("modal-role-badge");
+        if (currentRole === "STEWARD") {
+          label.textContent = "Data Steward (Đề xuất)";
+          if (badge)
+            badge.textContent = "Đang thao tác: Data Steward (Người đề xuất)";
+          showToast(
+            "Đã chuyển sang vai trò: Data Steward (Chỉ được phép Đề xuất, không được Tự phê duyệt - REV-03)",
+          );
+        } else {
+          label.textContent = "Approver (Phê duyệt Độc lập)";
+          if (badge)
+            badge.textContent =
+              "Đang thao tác: Independent Approver (Người phê duyệt)";
+          showToast(
+            "Đã chuyển sang vai trò: Independent Approver (Có quyền Kích hoạt Liên kết Crosswalk - REV-03)",
+          );
+        }
+      }
+
+      // Chuyển đổi Pool Dữ liệu (Account Pool vs Contact Pool - DAT-04)
+      function setPoolFilter(pool) {
+        currentPool = pool;
+        ["ACCOUNT", "CONTACT", "ALL"].forEach((p) => {
+          const btn = document.getElementById("pool-" + p);
+          if (!btn) return;
+          if (p === pool) {
+            btn.className =
+              "pool-btn btn-shimmer py-2.5 px-4 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all btn-glow text-white";
+          } else {
+            btn.className =
+              "pool-btn btn-shimmer py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-between transition-all text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800";
+          }
+        });
+        filterCustomerTable();
+      }
+
+      function animateNumbers() {
+        document.querySelectorAll(".count-up").forEach((el) => {
+          const target = parseFloat(el.dataset.target);
+          const decimals = parseInt(el.dataset.decimals || "0");
+          const suffix = el.dataset.suffix || "";
+          const duration = 900;
+          const start = performance.now();
+
+          function tick(now) {
+            const p = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 3);
+            const cur = target * ease;
+            el.textContent =
+              (decimals
+                ? cur.toFixed(decimals)
+                : Math.round(cur).toLocaleString("en-US")) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
+      }
+
+      function getAvatar(item) {
+        const icon =
+          item.pool === "ACCOUNT"
+            ? item.entitySubtype.includes("BRANCH") ||
+              item.entitySubtype.includes("SITE")
+              ? "fa-industry"
+              : "fa-building"
+            : "fa-user-tie";
+        const bg =
+          item.status === "HELD_CONFLICT"
+            ? "from-rose-500 to-pink-600 text-white"
+            : item.status === "UNDER_REVIEW"
+              ? "from-amber-500 to-orange-500 text-white"
+              : item.status === "APPROVED_RELATIONSHIP"
+                ? "from-purple-600 to-indigo-600 text-white"
+                : "from-emerald-500 to-teal-600 text-white";
+        return `<div class="w-9 h-9 rounded-xl bg-gradient-to-br ${bg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-xs"><i class="fa-solid ${icon}"></i></div>`;
+      }
+
+      function getRadialGauge(score, status) {
+        const stroke =
+          status === "HELD_CONFLICT"
+            ? "#f43f5e"
+            : status === "UNDER_REVIEW"
+              ? "#f59e0b"
+              : status === "APPROVED_RELATIONSHIP"
+                ? "#9333ea"
+                : "#10b981";
+        const c = 2 * Math.PI * 14;
+        const offset = c - (score / 100) * c;
+        return `
+          <div class="relative w-10 h-10 shrink-0" title="Ranking Value (MAT-03): ${score}/100">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(148,163,184,0.2)" stroke-width="3.5"></circle>
+              <circle cx="18" cy="18" r="14" fill="none" stroke="${stroke}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"></circle>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center font-mono font-extrabold text-[10px]">${score}</span>
+          </div>
+        `;
+      }
+
+      function renderCustomerTable(data) {
+        const tbody = document.getElementById("customer-table-body");
+        const kw = val("search-input").trim();
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xl mb-2 block"></i>
+                Không tìm thấy bản ghi nào trong Pool đang chọn khớp với điều kiện lọc.
+              </td>
+            </tr>
+          `;
+          document.getElementById("filter-result-count").innerHTML =
+            `Hiển thị <strong>0</strong> bản ghi`;
+          updateBulkBar();
+          return;
+        }
+
+        const ACC = {
+          HELD_CONFLICT: "#f43f5e",
+          UNDER_REVIEW: "#f59e0b",
+          APPROVED_RELATIONSHIP: "#9333ea",
+          APPROVED_DUPLICATE: "#10b981",
+        };
+
+        data.forEach((item) => {
+          let statusBadge = "";
+          let rowHighlight = "hover:bg-indigo-50/40 dark:hover:bg-slate-800/50";
+
+          if (item.status === "HELD_CONFLICT") {
+            rowHighlight =
+              "bg-rose-50/25 dark:bg-rose-950/15 hover:bg-rose-50/60";
+            statusBadge = `
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
+                  Tạm giữ Xung đột (MAT-05)
+                </span>
+                <div class="text-[11px] text-rose-700 dark:text-rose-300 font-medium mt-0.5">
+                  Đối chiếu <button onclick="event.stopPropagation();openCompareModal('${item.id}')" class="font-mono font-bold underline">#${item.duplicateWith}</button> • ${item.duplicateReason}
+                </div>
+              </div>
+            `;
+          } else if (item.status === "UNDER_REVIEW") {
+            rowHighlight =
+              "bg-amber-50/25 dark:bg-amber-950/15 hover:bg-amber-50/60";
+            statusBadge = `
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Chờ Phê duyệt Độc lập (REV-01)
+                </span>
+                <div class="text-[11px] text-amber-800 dark:text-amber-300 font-medium mt-0.5">
+                  Ứng viên <button onclick="event.stopPropagation();openCompareModal('${item.id}')" class="font-mono font-bold underline">#${item.duplicateWith}</button> • ${item.duplicateReason}
+                </div>
+              </div>
+            `;
+          } else if (item.status === "APPROVED_RELATIONSHIP") {
+            statusBadge = `
+              <div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                  <i class="fa-solid fa-sitemap text-[10px]"></i>
+                  Thực thể Liên quan (Related • Không gộp)
+                </span>
+                <div class="text-[11px] text-slate-500 mt-0.5">${item.duplicateReason}</div>
+              </div>
+            `;
+          } else {
+            statusBadge = `
+              <div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                  <i class="fa-solid fa-check-double text-[10px]"></i>
+                  Đã duyệt Crosswalk (Canonical)
+                </span>
+                <div class="text-[11px] text-slate-400 mt-0.5">${item.duplicateReason}</div>
+              </div>
+            `;
+          }
+
+          const needsReview =
+            item.status === "HELD_CONFLICT" || item.status === "UNDER_REVIEW";
+          const tr = document.createElement("tr");
+          tr.className = `transition-colors cursor-pointer ${rowHighlight}`;
+          tr.onclick = (e) => {
+            if (!e.target.closest("input,button")) openCompareModal(item.id);
+          };
+          tr.innerHTML = `
+            <td class="py-3.5 pl-4 pr-2" style="box-shadow: inset 3px 0 0 ${ACC[item.status] || "#94a3b8"}">
+              <input type="checkbox" onchange="updateBulkBar()" class="row-chk rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="font-mono font-bold text-indigo-600 dark:text-indigo-400">${highlightText(item.id, kw)}</div>
+              <div class="font-mono text-[10px] text-slate-500 mt-0.5">${item.canonicalId}</div>
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="flex items-center gap-2.5">
+                ${getAvatar(item)}
+                <div>
+                  <div class="font-bold text-slate-900 dark:text-white">${highlightText(item.name, kw)}</div>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold">${item.entitySubtype}</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">${item.source}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 px-3 font-mono text-[11px]">
+              <div class="font-bold text-slate-800 dark:text-slate-200">
+                <i class="fa-solid fa-id-card text-[10px] mr-1 opacity-70"></i>MST/ID: ${highlightText(item.taxId, kw)}
+              </div>
+              <div class="${needsReview ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-600 dark:text-slate-300"} mt-0.5">
+                <i class="fa-solid fa-phone text-[10px] mr-1 opacity-70"></i>${highlightText(item.phone, kw)}
+              </div>
+              <div class="text-slate-500 mt-0.5 truncate max-w-[210px]">
+                <i class="fa-solid fa-envelope text-[10px] mr-1 opacity-70"></i>${highlightText(item.email, kw)}
+              </div>
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="font-bold text-slate-800 dark:text-slate-200">${highlightText(item.company, kw)}</div>
+              <div class="text-[11px] text-slate-500 truncate max-w-xs">${highlightText(item.address, kw)}</div>
+              <div class="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 mt-0.5">${item.effectiveDate}</div>
+            </td>
+            <td class="py-3.5 px-3">
+              <div class="flex items-center gap-2.5">
+                ${getRadialGauge(item.similarity, item.status)}
+                ${statusBadge}
+              </div>
+            </td>
+            <td class="py-3.5 px-3 text-right pr-4 whitespace-nowrap">
+              ${
+                needsReview
+                  ? `<button onclick="event.stopPropagation();openCompareModal('${item.id}')" class="btn-shimmer px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 shadow-xs">
+                       <i class="fa-solid fa-code-compare mr-1"></i> Xét duyệt
+                     </button>`
+                  : `<button onclick="event.stopPropagation();openCompareModal('${item.id}')" class="btn-secondary-hover px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                       Bằng chứng
+                     </button>`
+              }
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("filter-result-count").innerHTML =
+          `Pool <strong>${currentPool}</strong>: Hiển thị <strong>${data.length}</strong> bản ghi`;
+        updateBulkBar();
+      }
+
+      function filterCustomerTable() {
+        const kw = val("search-input").trim();
+        const status = val("filter-status");
+        const source = val("filter-source");
+        const nk = norm(kw),
+          pk = normPhone(kw),
+          usePhone = pk.replace(/\D/g, "").length >= 3;
+
+        const list = CUSTOMERS.filter((it) => {
+          const matchPool = currentPool === "ALL" || it.pool === currentPool;
+          const hit =
+            !kw ||
+            [
+              it.id,
+              it.canonicalId,
+              it.name,
+              it.taxId,
+              it.email,
+              it.company,
+              it.address,
+            ].some((v) => norm(v).includes(nk)) ||
+            (usePhone && normPhone(it.phone).includes(pk));
+          const st =
+            status === "ALL" ||
+            (status === "DUP"
+              ? ["HELD_CONFLICT", "UNDER_REVIEW"].includes(it.status)
+              : it.status === status);
+          return (
+            matchPool && hit && st && (source === "ALL" || it.source === source)
+          );
+        });
+
+        if (sortKey) {
+          list.sort(
+            (a, b) =>
+              (typeof a[sortKey] === "number"
+                ? a[sortKey] - b[sortKey]
+                : String(a[sortKey]).localeCompare(String(b[sortKey]), "vi")) *
+              sortDir,
+          );
+        }
+
+        renderCustomerTable(list);
+        const all = document.getElementById("chk-all");
+        if (all) all.checked = false;
+      }
+
+      function sortTable(key) {
+        sortDir = sortKey === key ? -sortDir : 1;
+        sortKey = key;
+        ["id", "name", "similarity"].forEach((k) => {
+          const icon = document.getElementById("sort-" + k);
+          if (icon) {
+            icon.className =
+              "fa-solid ml-1 " +
+              (k === sortKey
+                ? sortDir > 0
+                  ? "fa-sort-up text-indigo-600"
+                  : "fa-sort-down text-indigo-600"
+                : "fa-sort text-slate-300");
+          }
+        });
+        filterCustomerTable();
+      }
+
+      function setStatusTab(tabValue) {
+        document.getElementById("filter-status").value = tabValue;
+        syncPillFromSelect();
+        filterCustomerTable();
+      }
+
+      function syncPillFromSelect() {
+        const current = val("filter-status");
+        document
+          .querySelectorAll("#status-pills .status-pill")
+          .forEach((btn) => {
+            const active = btn.dataset.tab === current;
+            btn.className = active
+              ? "status-pill px-3 py-1.5 rounded-xl text-xs font-bold btn-glow text-white transition"
+              : "status-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition";
+          });
+      }
+
+      function setSearchKeyword(kw) {
+        document.getElementById("search-input").value = kw;
+        filterCustomerTable();
+      }
+
+      function resetFilters() {
+        document.getElementById("search-input").value = "";
+        document.getElementById("filter-status").value = "ALL";
+        document.getElementById("filter-source").value = "ALL";
+        setPoolFilter("ALL");
+        syncPillFromSelect();
+        filterCustomerTable();
+      }
+
+      function switchScreen(screenId) {
+        const screens = ["overview", "customers", "import", "specs"];
+        const titles = {
+          overview: "1. Màn hình Tổng quan (CRM Dashboard Overview)",
+          customers:
+            "2. Danh sách & Tra cứu Định danh (Account & Contact Pools)",
+          import:
+            "3. Tiếp nhận Lô CSV & Mô phỏng Phát hiện (Intake & Detection)",
+          specs: "4. Đặc tả Giao diện & Ma trận Đáp ứng RFP SongNhat (KAN-8)",
+        };
+
+        screens.forEach((s) => {
+          const el = document.getElementById("screen-" + s);
+          const nav = document.getElementById("nav-" + s);
+          if (s === screenId) {
+            el.classList.remove("hidden");
+            nav.className =
+              "nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all btn-glow text-white";
+          } else {
+            el.classList.add("hidden");
+            nav.className =
+              "nav-btn btn-shimmer w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:bg-white/10 hover:text-white";
+          }
+        });
+
+        document.getElementById("header-breadcrumb").textContent =
+          titles[screenId];
+        if (screenId === "overview") animateNumbers();
+      }
+
+      function toggleAnnotations() {
+        document.body.classList.toggle("show-annotations");
+        const on = document.body.classList.contains("show-annotations");
+        document.getElementById("label-annotation-state").textContent = on
+          ? "BẬT"
+          : "TẮT";
+      }
+
+      function toggleWireframeMode() {
+        document.body.classList.toggle("wireframe-mode");
+        const isWf = document.body.classList.contains("wireframe-mode");
+        document.getElementById("label-wf-state").textContent = isWf
+          ? "Khung dây (Wireframe)"
+          : "UI Thực tế";
+      }
+
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle("dark");
+        const isDark = document.documentElement.classList.contains("dark");
+        document.getElementById("icon-dark").className = isDark
+          ? "fa-solid fa-sun"
+          : "fa-solid fa-moon";
+      }
+
+      // Biểu đồ cột 6 tháng có Tooltip nổi khi rê chuột
+      const TREND = [
+        ["Tháng 6", 1520, 220],
+        ["Tháng 7", 1780, 270],
+        ["Tháng 8", 1640, 200],
+        ["Tháng 9", 2050, 330],
+        ["Tháng 10", 2210, 290],
+        ["Tháng 11*", 1620, 100],
+      ];
+      function renderTrend() {
+        const el = document.getElementById("trend-chart"),
+          M = 2400;
+        if (!el) return;
+        const grid = [0, 600, 1200, 1800, 2400]
+          .map(
+            (g) =>
+              `<div class="absolute left-0 right-0 flex items-center" style="bottom:${(g / M) * 100}%"><span class="w-10 pr-2 text-right text-[11px] text-slate-400 font-mono">${fmt(g)}</span><span class="flex-1 border-t border-dashed border-slate-200 dark:border-slate-800"></span></div>`,
+          )
+          .join("");
+        const bar = (n, cls, label) =>
+          `<div class="relative w-8 rounded-t-lg bar-grow ${cls} group cursor-pointer transition-transform hover:scale-105" style="height:${(n / M) * 100}%">
+            <span class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">${fmt(n)}</span>
+            <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-12 left-1/2 -translate-x-1/2 z-20 px-2 py-1 rounded bg-slate-900 text-white text-[10px] font-mono whitespace-nowrap pointer-events-none shadow-lg">${label}: ${fmt(n)}</div>
+          </div>`;
+        const cols = TREND.map(
+          ([m, c, d]) =>
+            `<div class="flex items-end gap-1.5 h-full">${bar(c, "btn-glow", "Bản ghi chuẩn")}${bar(d, "bg-gradient-to-t from-amber-500 to-amber-300", "Cặp ứng viên")}</div>`,
+        ).join("");
+        const labels = TREND.map(
+          ([m]) =>
+            `<span class="flex-1 text-center text-xs font-bold text-slate-600 dark:text-slate-400">${m}</span>`,
+        ).join("");
+        el.innerHTML = `<div class="relative h-52"><div>${grid}</div><div class="absolute inset-0 left-10 flex items-end justify-around">${cols}</div></div><div class="flex pl-10 mt-2">${labels}</div>`;
+      }
+
+      // Chấm điểm ứng viên trực tiếp ở Màn hình 3 (Phân biệt Duplicate vs Parent-Branch)
+      function scoreAgainst(inp) {
+        let best = null;
+        CUSTOMERS.forEach((c) => {
+          const taxRootInp = inp.tax.split("-")[0];
+          const taxRootRec = c.taxId.split("-")[0];
+          const isBranchDiff =
+            inp.tax.includes("-") &&
+            taxRootInp === taxRootRec &&
+            inp.tax !== c.taxId;
+          const exactTax = !!inp.tax && inp.tax === c.taxId;
+
+          const p = !!inp.phone && normPhone(c.phone) === inp.phone,
+            e = !!inp.email && norm(c.email) === inp.email,
+            n = tokSim(inp.name, c.name);
+
+          const taxScore = exactTax ? 45 : isBranchDiff ? 25 : 0;
+          const pScore = p ? 25 : 0;
+          const nScore = Math.round(n * 0.2);
+          const eScore = e ? 10 : 0;
+
+          let s = Math.min(99, taxScore + pScore + nScore + eScore);
+          if (exactTax || p) s = Math.max(s, 72);
+          if (!best || s > best.s) {
+            best = {
+              c,
+              s,
+              p,
+              e,
+              n,
+              exactTax,
+              isBranchDiff,
+              taxScore,
+              pScore,
+              nScore,
+              eScore,
+            };
+          }
+        });
+        return best;
+      }
+
+      function checkRealtimeDuplicate() {
+        dupConfirmed = false;
+        const ph = normPhone(val("inp-phone")),
+          tax = val("inp-tax").trim(),
+          pn = document.getElementById("phone-norm"),
+          nn = document.getElementById("name-norm");
+        if (pn) pn.textContent = ph || "—";
+        if (nn) nn.textContent = norm(val("inp-name")) || "—";
+
+        const m = scoreAgainst({
+          name: val("inp-name"),
+          tax: tax,
+          phone: ph,
+          email: norm(val("inp-email").trim()),
+          company: val("inp-company"),
+        });
+
+        const barsEl = document.getElementById("live-score-bars");
+        const totalEl = document.getElementById("live-total-score");
+        if (barsEl && m) {
+          totalEl.textContent = `Ranking Score (MAT-03): ${m.s} / 100`;
+          totalEl.className =
+            "font-mono font-extrabold text-sm " +
+            (m.isBranchDiff
+              ? "text-purple-600"
+              : m.s >= 85
+                ? "text-rose-600"
+                : m.s >= 65
+                  ? "text-amber-600"
+                  : "text-emerald-600");
+          const items = [
+            ["MST / ID (45%)", m.taxScore, 45],
+            ["SĐT Chuẩn (25%)", m.pScore, 25],
+            ["Tên Pháp lý (20%)", m.nScore, 20],
+            ["Email/Miền (10%)", m.eScore, 10],
+          ];
+          barsEl.innerHTML = items
+            .map(
+              ([label, valScore, maxScore]) => `
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between text-[10px] font-bold">
+                  <span class="text-slate-500">${label}</span>
+                  <span class="font-mono text-indigo-600 dark:text-indigo-400">+${valScore}đ</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
+                  <div class="h-full bg-indigo-600 rounded-full transition-all" style="width:${(valScore / maxScore) * 100}%"></div>
+                </div>
+              </div>
+            `,
+            )
+            .join("");
+        }
+
+        const wb = document.getElementById("realtime-warning-box"),
+          cb = document.getElementById("realtime-clean-box");
+        window._best = m && m.s >= 65 ? m : null;
+        if (!window._best) {
+          wb.classList.add("hidden");
+          cb.classList.remove("hidden");
+          return;
+        }
+
+        const c = m.c;
+        if (m.isBranchDiff) {
+          document.getElementById("dup-dyn").innerHTML = `
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow">
+                <i class="fa-solid fa-sitemap"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-xs font-extrabold text-purple-950 dark:text-purple-200">Phát hiện Quan hệ Công ty Mẹ – Chi nhánh / Nhà máy (Điểm: ${m.s}/100)</h3>
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-600 text-white">Related But Distinct (Ex B)</span>
+                </div>
+                <p class="text-xs text-purple-800 dark:text-purple-300 mt-0.5">
+                  Chung gốc MST <code class="font-mono font-bold">0314892100</code> và SĐT tổng đài nhưng có hậu tố chi nhánh <code class="font-mono font-bold">${tax}</code>. <strong>Quy tắc RFP: Giữ làm 2 thực thể riêng biệt và gắn liên kết Parent-Branch!</strong>
+                </p>
+              </div>
+            </div>
+            <div class="mt-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div>
+                <span class="font-mono font-bold text-indigo-600">#${c.id}</span> • <strong class="text-slate-900 dark:text-white">${c.name}</strong>
+                <div class="text-slate-500 font-mono text-[11px] mt-0.5">MST Gốc: ${c.taxId} • SĐT: ${c.phone}</div>
+              </div>
+              <button onclick="openCompareModal('ACC-ERP-1055')" class="btn-shimmer px-3.5 py-2 rounded-xl font-bold bg-purple-600 text-white hover:bg-purple-700 shrink-0">
+                <i class="fa-solid fa-link mr-1"></i> Đề xuất Liên kết Mẹ - Chi nhánh
+              </button>
+            </div>
+          `;
+        } else {
+          const high = m.s >= 85,
+            col = high ? "bg-rose-600" : "bg-amber-500";
+          document.getElementById("dup-dyn").innerHTML = `
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl ${col} text-white flex items-center justify-center shrink-0 shadow">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-xs font-extrabold text-amber-950 dark:text-amber-200">Cảnh báo Ứng viên Trùng lặp (Ranking Score: ${m.s}/100)</h3>
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${col} text-white">${high ? "Ứng viên Ưu tiên Cao (Chờ duyệt)" : "Nghi ngờ trùng"}</span>
+                </div>
+                <p class="text-xs text-amber-800 dark:text-amber-300 mt-0.5">
+                  Khớp MST & Tên pháp lý với hồ sơ hiện có (Khác địa chỉ cũ/mới - Example A). <strong>Cấm tự động kích hoạt liên kết khi chưa có Approver phê duyệt!</strong>
+                </p>
+              </div>
+            </div>
+            <div class="mt-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div>
+                <span class="font-mono font-bold text-indigo-600">#${c.id}</span> • <strong class="text-slate-900 dark:text-white">${c.name}</strong>
+                <div class="text-slate-500 font-mono text-[11px] mt-0.5">MST: ${c.taxId} • SĐT: ${c.phone}</div>
+              </div>
+              <button onclick="openCompareModal('${c.id}')" class="btn-shimmer px-3.5 py-2 rounded-xl font-bold bg-amber-500 text-white hover:bg-amber-600 shrink-0">
+                <i class="fa-solid fa-code-compare mr-1"></i> Mở Đối chiếu Side-by-Side
+              </button>
+            </div>
+          `;
+        }
+        wb.classList.remove("hidden");
+        cb.classList.add("hidden");
+      }
+
+      // 3 Kịch bản Test chuẩn Annex B
+      function fillDuplicateSample() {
+        document.getElementById("inp-name").value =
+          "Cong ty CP Co khi Chinh xac Dai Nam";
+        document.getElementById("inp-tax").value = "0314892100";
+        document.getElementById("inp-phone").value = "+84 28 3811 2233";
+        document.getElementById("inp-email").value = "sales@dainam-mech.vn";
+        document.getElementById("inp-company").value =
+          "142 Cộng Hòa, Quận Tân Bình, TP.HCM (Địa chỉ cũ)";
+        checkRealtimeDuplicate();
+        showToast(
+          "Kịch bản A (Annex B): Trùng MST & Tên pháp lý nhưng khác địa chỉ cũ/mới -> Đề xuất Same Entity chờ duyệt",
+        );
+      }
+
+      function fillBranchSample() {
+        document.getElementById("inp-name").value =
+          "Công ty CP Cơ khí Chính xác Đại Nam - Nhà máy Bình Dương";
+        document.getElementById("inp-tax").value = "0314892100-001";
+        document.getElementById("inp-phone").value = "028 3811 2233";
+        document.getElementById("inp-email").value = "plant.bd@dainam-mech.vn";
+        document.getElementById("inp-company").value =
+          "KCN VSIP 1, TP. Thuận An, Bình Dương";
+        checkRealtimeDuplicate();
+        showToast(
+          "Kịch bản B (Annex B): Chung gốc MST nhưng có mã nhánh -001 -> Phân loại Thực thể Liên quan (Cấm gộp)",
+        );
+      }
+
+      function fillCleanSample() {
+        document.getElementById("inp-name").value =
+          "Công ty TNHH Khí nén Công nghiệp Đông Á";
+        document.getElementById("inp-tax").value = "0318990011";
+        document.getElementById("inp-phone").value = "02836667788";
+        document.getElementById("inp-email").value = "info@donga-pneumatics.vn";
+        document.getElementById("inp-company").value =
+          "KCN Vĩnh Lộc, Quận Bình Tân, TP.HCM";
+        checkRealtimeDuplicate();
+        showToast(
+          "Kịch bản C: Hồ sơ doanh nghiệp hoàn toàn mới, không trùng lặp",
+        );
+      }
+
+      function saveCustomer() {
+        const name = val("inp-name").trim(),
+          ph = normPhone(val("inp-phone"));
+        if (!name || ph.length < 9) {
+          return showToast(
+            "Vui lòng nhập đầy đủ Tên thực thể và Số điện thoại hợp lệ!",
+            "warn",
+          );
+        }
+        showToast(
+          "Steward đã ghi nhận đề xuất vào Hàng đợi Review (Trạng thái: UNDER_REVIEW - Chờ Approver phê duyệt độc lập)!",
+        );
+      }
+
+      // Modal Đối chiếu Side-by-Side (Hỗ trợ 4 danh mục quyết định REV-02 & Quy tắc REV-03)
+      function openCompareModal(id) {
+        activeModalId = id;
+        const rec = CUSTOMERS.find((c) => c.id === id) || CUSTOMERS[0],
+          dup = rec.duplicateCandidate;
+        const body = document.getElementById("compare-modal-body"),
+          title = document.getElementById("compare-title");
+        const F = [
+          ["Tên Thực thể", "name"],
+          ["Mã số thuế / ID", "taxId"],
+          ["Số điện thoại", "phone"],
+          ["Email", "email"],
+          ["Đơn vị / Ngành", "company"],
+          ["Địa chỉ", "address"],
+        ];
+
+        if (!dup) {
+          title.textContent = `Bằng chứng Định danh Chuẩn (${rec.canonicalId})`;
+          body.innerHTML =
+            `<div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2"><div class="font-mono font-bold text-indigo-600 text-sm">Source Key: #${rec.id} &rarr; Canonical ID: ${rec.canonicalId}</div>` +
+            F.map(
+              ([l, k]) =>
+                `<div><span class="text-slate-500">${l}:</span> <strong>${rec[k]}</strong></div>`,
+            ).join("") +
+            `<div><span class="text-slate-500">Nguồn dữ liệu:</span> ${rec.source} (${rec.effectiveDate})</div><div class="text-emerald-600 font-bold pt-1">${rec.duplicateReason}</div></div>`;
+        } else {
+          title.textContent = `Đối chiếu Bằng chứng Nguồn: #${rec.id} vs #${dup.id}`;
+          const sc = (k, a, b) =>
+            k === "phone"
+              ? normPhone(a) === normPhone(b)
+                ? 100
+                : 0
+              : k === "taxId"
+                ? a === b
+                  ? 100
+                  : a.split("-")[0] === b.split("-")[0]
+                    ? 75
+                    : 0
+                : tokSim(a, b);
+
+          const rows = F.map(([l, k]) => {
+            const s = sc(k, rec[k], dup[k]),
+              c =
+                s >= 80
+                  ? "text-emerald-700 bg-emerald-50"
+                  : s >= 50
+                    ? "text-purple-700 bg-purple-50"
+                    : "text-rose-700 bg-rose-50";
+            return (
+              `<tr class="border-t border-slate-200 dark:border-slate-800 align-top"><td class="py-2.5 pr-2 font-bold text-slate-500">${l}</td>` +
+              [rec, dup]
+                .map(
+                  (r, i) =>
+                    `<td class="py-2.5 pr-2"><label class="flex gap-1.5 items-start cursor-pointer"><input type="radio" name="keep-${k}" ${i ? "" : "checked"} class="mt-0.5 text-indigo-600"><span>${r[k]}</span></label></td>`,
+                )
+                .join("") +
+              `<td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded-full font-mono font-bold ${c}">${s}%</span></td></tr>`
+            );
+          }).join("");
+
+          body.innerHTML = `
+            <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="font-extrabold text-amber-900 dark:text-amber-200">Điểm Xếp hạng Ứng viên (MAT-03 Ranking Value): ${rec.similarity} / 100</div>
+                <div class="text-amber-700 dark:text-amber-300 mt-0.5">Bằng chứng: ${rec.duplicateReason}</div>
+              </div>
+              <span class="px-3 py-1 rounded-full font-mono font-extrabold bg-indigo-600 text-white">Rule v2.4</span>
+            </div>
+
+            <!-- 4 Danh mục Quyết định Bắt buộc theo REV-02 -->
+            <div class="space-y-2">
+              <label class="block font-extrabold text-slate-700 dark:text-slate-200 uppercase text-[11px]">
+                Chọn Danh mục Quyết định Phân giải (REV-02 Decision Categories):
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2 cursor-pointer hover:border-indigo-500">
+                  <input type="radio" name="rev02_cat" value="SAME_ENTITY" ${rec.proposedCategory === "SAME_ENTITY" ? "checked" : ""} class="mt-0.5 text-indigo-600" />
+                  <div>
+                    <div class="font-bold text-slate-900 dark:text-white">1. Cùng một thực thể (Same Entity)</div>
+                    <div class="text-[11px] text-slate-500">Cấp chung Canonical ID trong bảng Crosswalk</div>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 flex items-start gap-2 cursor-pointer hover:border-purple-500">
+                  <input type="radio" name="rev02_cat" value="RELATED_DISTINCT" ${rec.proposedCategory === "RELATED_DISTINCT" ? "checked" : ""} class="mt-0.5 text-purple-600" />
+                  <div>
+                    <div class="font-bold text-purple-900 dark:text-purple-200">2. Có liên quan nhưng Khác biệt (Related)</div>
+                    <div class="text-[11px] text-purple-700 dark:text-purple-300">Công ty Mẹ / Chi nhánh / Nhà máy (Không gộp!)</div>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2 cursor-pointer hover:border-indigo-500">
+                  <input type="radio" name="rev02_cat" value="DISTINCT" class="mt-0.5 text-indigo-600" />
+                  <div>
+                    <div class="font-bold text-slate-900 dark:text-white">3. Khác biệt hoàn toàn (Distinct)</div>
+                    <div class="text-[11px] text-slate-500">Bác bỏ cặp trùng & lưu vào danh sách chặn (Suppression)</div>
+                  </div>
+                </label>
+                <label class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2 cursor-pointer hover:border-indigo-500">
+                  <input type="radio" name="rev02_cat" value="INSUFFICIENT" ${rec.proposedCategory === "INSUFFICIENT" ? "checked" : ""} class="mt-0.5 text-indigo-600" />
+                  <div>
+                    <div class="font-bold text-slate-900 dark:text-white">4. Chưa đủ bằng chứng (Defer / Hold)</div>
+                    <div class="text-[11px] text-slate-500">Tạm hoãn chờ Chủ sở hữu nguồn xác minh</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-slate-500 border-b border-slate-200 dark:border-slate-800">
+                  <th class="pb-2 w-28">Trường (REV-04)</th>
+                  <th class="pb-2">#${rec.id} (${rec.source})</th>
+                  <th class="pb-2">#${dup.id} (${dup.source})</th>
+                  <th class="pb-2 text-right">Độ khớp</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <p class="text-slate-500 italic">Chọn trường ưu tiên (Field Precedence - REV-04) để hiển thị trên Canonical Crosswalk. Dữ liệu gốc tại CRM được giữ nguyên 100%.</p>
+          `;
+        }
+
+        const m = document.getElementById("compare-modal");
+        m.classList.remove("hidden");
+        m.classList.add("flex");
+      }
+
+      function closeCompareModal() {
+        const m = document.getElementById("compare-modal");
+        m.classList.add("hidden");
+        m.classList.remove("flex");
+      }
+
+      function submitStewardProposal() {
+        closeCompareModal();
+        showToast(
+          "Steward đã lưu Đề xuất Phân giải (kèm Snapshot bằng chứng). Đang chờ Approver độc lập phê duyệt (REV-03)!",
+        );
+      }
+
+      function submitApproverActivation() {
+        if (currentRole === "STEWARD") {
+          return showToast(
+            "Chặn bởi REV-03 (No Self-Approval): Bạn đang ở vai trò Data Steward nên không thể tự phê duyệt! Hãy bấm nút đổi sang vai trò Approver trên Header.",
+            "warn",
+          );
+        }
+        closeCompareModal();
+        showToast(
+          "Approver đã phê duyệt độc lập và kích hoạt liên kết vào Sổ đăng ký Canonical Crosswalk (REV-03 & REV-05)!",
+        );
+      }
+
+      function exportApprovedCrosswalk() {
+        const approved = CUSTOMERS.filter((c) =>
+          ["APPROVED_DUPLICATE", "APPROVED_RELATIONSHIP"].includes(c.status),
+        );
+        const q = (s) => `"${String(s).replace(/"/g, '""')}"`;
+        const csv =
+          "\ufeff" +
+          [
+            "Source_Key,Canonical_ID,Pool,Entity_Subtype,Name,Tax_ID,Phone,Source_CSV,Review_Status",
+          ]
+            .concat(
+              approved.map((c) =>
+                [
+                  c.id,
+                  c.canonicalId,
+                  c.pool,
+                  c.entitySubtype,
+                  c.name,
+                  c.taxId,
+                  c.phone,
+                  c.source,
+                  c.status,
+                ]
+                  .map(q)
+                  .join(","),
+              ),
+            )
+            .join("\n");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(
+          new Blob([csv], { type: "text/csv;charset=utf-8" }),
+        );
+        a.download = "SongNhat_Approved_Canonical_Crosswalk.csv";
+        a.click();
+        showToast(
+          `Đã xuất ${approved.length} bản ghi Crosswalk đã duyệt (Đã tự động loại trừ các bản ghi Held/Under Review theo chuẩn B-06)!`,
+        );
+      }
+
+      function selectedRows() {
+        return [...document.querySelectorAll(".row-chk:checked")].map((c) =>
+          c.closest("tr").children[1].querySelector("div").textContent.trim(),
+        );
+      }
+      function updateBulkBar() {
+        const ids = selectedRows();
+        let b = document.getElementById("bulk-bar");
+        if (!b) {
+          b = document.createElement("div");
+          b.id = "bulk-bar";
+          b.className =
+            "fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 px-5 py-3 flex items-center gap-3 text-xs";
+          document.body.appendChild(b);
+        }
+        b.classList.toggle("hidden", !ids.length);
+        b.innerHTML = `
+          <span class="font-bold text-indigo-300">Đã chọn ${ids.length} bản ghi nguồn</span>
+          <button onclick="bulkReview()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold">Chuyển Steward Đề xuất</button>
+          <button onclick="exportApprovedCrosswalk()" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 font-semibold">Xuất Crosswalk CSV</button>
+          <button onclick="toggleAll(false)" class="text-slate-400 hover:text-white ml-1">Bỏ chọn</button>
+        `;
+      }
+      function toggleAll(v) {
+        document.querySelectorAll(".row-chk").forEach((c) => (c.checked = v));
+        const a = document.getElementById("chk-all");
+        if (a && !v) a.checked = false;
+        updateBulkBar();
+      }
+      function bulkReview() {
+        const n = selectedRows().length;
+        toggleAll(false);
+        showToast(`Đã gán ${n} bản ghi vào phiên làm việc của Data Steward!`);
+      }
+
+      function updatePager() {
+        const size = parseInt(val("page-size") || "10"),
+          total = 14820,
+          pages = Math.ceil(total / size);
+        document.getElementById("pager-info").innerHTML =
+          `Trang <strong>1</strong> trên <strong>${fmt(pages)}</strong> • ${fmt(total)} bản ghi Pilot`;
+        document.getElementById("pager-last").textContent = fmt(pages);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeCompareModal();
+      });
+
+      function showToast(msg, type = "ok") {
+        const t = document.getElementById("toast-box");
+        t.querySelector("i").className =
+          type === "warn"
+            ? "fa-solid fa-triangle-exclamation text-amber-400 text-sm"
+            : "fa-solid fa-circle-check text-emerald-400 text-sm";
+        document.getElementById("toast-message").textContent = msg;
+        t.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.add("hidden"), 3800);
+      }
+
+      window.onload = function () {
+        animateNumbers();
+        setPoolFilter("ALL");
+        renderTrend();
+        updatePager();
+        checkRealtimeDuplicate();
+      };
+    </script>
+  </body>
+</html>

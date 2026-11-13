@@ -1,0 +1,3 @@
+source_key,source_system,entity_type,legal_name,tax_code,phone,email,address
+ACC-1089,CRM_SOUTH,COMPANY,Cty TNHH Phan mem FPT,0101248141,+84908123456,contact@fpt.com.vn,"Lô E2a-7, Đường D1, KCNC, Quận 9, TP.HCM"
+ACC-2015,CRM_SOUTH,BRANCH,Chi nhánh Công ty CP Cơ khí Đại Nam - Nhà máy Bình Dương,0314892100-001,02838991122,sales@dainam-ind.vn,"KCN VSIP 1, Thuận An, Bình Dương"
