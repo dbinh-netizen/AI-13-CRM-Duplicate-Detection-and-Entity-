@@ -80,19 +80,26 @@ Mở http://127.0.0.1:8000/docs để xem và thử API. Mặc định hệ th�
 
 ---
 
-## 4. Giao việc tuần 3 theo Jira
+## 4. Phân công theo vai trò (10 thành viên)
 
-| Jira | Việc | Thư mục / file làm việc |
-|---|---|---|
-| KAN-13 [PM] | Quản lý phạm vi, tiến độ, Jira và Git | `README.md`, Jira |
-| KAN-14 [BA] | Đặc tả nghiệp vụ cho bản thử nghiệm đầu tiên | `docs/business_requirements/` |
-| KAN-15 [AI] | Khớp chính xác và tạo cặp ứng viên | `backend/services/matcher.py` |
-| KAN-16 [DATA] | Đọc CSV, kiểm tra, chuẩn hóa cơ bản | `backend/services/intake.py`, `normalizer.py`, `data/sample_csv/` |
-| KAN-17 [BE] | API tiếp nhận dữ liệu và tra cứu bản ghi nguồn | `backend/api/routes.py`, `schemas.py` |
-| [FE] | Giao diện danh sách bản ghi và cặp nghi trùng | `frontend/index.html` |
+Danh sách việc **thay đổi mỗi tuần** nên nằm trên Jira, không ghi vào README. Bảng dưới chỉ ghi vị trí và thư mục phụ trách, ít thay đổi. Người phụ trách điền tên GitHub vào cột cuối.
 
-Thiết kế giao diện mẫu (KAN-8) nằm ở `docs/ui_designs/crm_dashboard_prototype.html`.
+| Vị trí (tag Jira) | Việc chính | Thư mục / file | Người phụ trách |
+|---|---|---|---|
+| PM | Chia thẻ KAN mỗi tuần, theo dõi tiến độ, giữ `main` ổn định | Jira, `README.md`, `CONTRIBUTING.md` | `@...` |
+| BA | Phân tích nghiệp vụ, bảng đối chiếu yêu cầu RFP | `docs/business_requirements/` | `@...` |
+| DB | Thiết kế ERD và bảng dữ liệu | `backend/models.py`, `backend/database.py`, `docs/database_erd/` | `@...` |
+| DATA | Đọc CSV, kiểm tra dữ liệu, chuẩn hóa tiếng Việt | `backend/services/intake.py`, `normalizer.py`, `data/sample_csv/` | `@...` |
+| AI | Khớp chính xác và khớp mờ, chấm điểm, tạo cặp ứng viên | `backend/services/matcher.py` | `@...` |
+| BE (2 người) | API, duyệt hai cấp, xuất crosswalk, phân quyền | `backend/api/`, `schemas.py`, `services/resolver.py`, `exporter.py`, `security.py` | `@...`, `@...` |
+| FE - Dashboard | Giao diện tổng quan, danh sách, nhập CSV | `frontend/index.html` | `@...` |
+| FE - Review | Giao diện đối chiếu và duyệt cặp nghi trùng | `frontend/duplicate_review.html` | `@...` |
+| QA | Kế hoạch kiểm thử, test tự động, bộ đáp án | `tests/`, `docs/test_plans/`, `data/sample_csv/ground_truth_pairs.csv` | `@...` |
 
+### Làm việc hằng tuần với Jira
+1. Đầu tuần, PM tạo thẻ mới tên `[Wxx][ROLE] Việc cần làm`, mô tả theo mẫu trong `CONTRIBUTING.md` (có ghi rõ file/thư mục làm việc).
+2. Thành viên xem thẻ của vai trò mình trên bảng Jira, tạo nhánh `feature/KAN-xx-ten-ngan` từ `main`, làm xong mở Pull Request.
+3. Thiết kế giao diện mẫu (KAN-8) nằm ở `docs/ui_designs/crm_dashboard_prototype.html`.
 ---
 
 ## 5. Quy tắc làm việc chung
