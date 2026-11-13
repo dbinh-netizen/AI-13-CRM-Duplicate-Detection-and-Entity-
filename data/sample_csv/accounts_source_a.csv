@@ -1,0 +1,4 @@
+source_key,source_system,entity_type,legal_name,tax_code,phone,email,address
+ACC-1042,ERP_NORTH,COMPANY,Công ty TNHH Phần mềm FPT,0101248141,0908123456,contact@fpt.com.vn,"Khu Công nghệ cao, TP. Thủ Đức, TP.HCM"
+ACC-2010,ERP_NORTH,COMPANY,Công ty CP Cơ khí Công nghiệp Đại Nam,0314892100,02838991122,sales@dainam-ind.vn,"Quận 12, TP.HCM"
+ACC-3001,ERP_NORTH,COMPANY,Công ty Cổ phần VNG,0303490096,02839623888,info@vng.com.vn,"Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM"
