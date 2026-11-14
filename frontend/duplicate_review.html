@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đối chiếu cặp nghi trùng — Data Steward · SongNhat AI-13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --bg-grid: radial-gradient(rgba(79, 70, 229, 0.12) 1px, transparent 1px);
+      }
+      .dark {
+        --bg-grid: radial-gradient(rgba(129, 140, 248, 0.12) 1px, transparent 1px);
+      }
+      body:not(.wireframe-mode) main {
+        background-color: #f8fafc;
+        background-image:
+          radial-gradient(900px 440px at 5% -5%, rgba(79, 70, 229, 0.11), transparent 60%),
+          radial-gradient(750px 380px at 96% 0%, rgba(14, 165, 233, 0.09), transparent 55%),
+          var(--bg-grid);
+        background-size: 100% 100%, 100% 100%, 24px 24px;
+      }
+      html.dark body main {
+        background-color: #070b14;
+        background-image:
+          radial-gradient(900px 440px at 10% -5%, rgba(79, 70, 229, 0.24), transparent 60%),
+          radial-gradient(750px 380px at 95% 5%, rgba(14, 165, 233, 0.14), transparent 55%),
+          var(--bg-grid);
+      }
+      .bento-card {
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-radius: 1rem;
+        box-shadow:
+          0 1px 2px rgba(15, 23, 42, 0.03),
+          0 12px 30px -12px rgba(15, 23, 42, 0.07);
+      }
+      html.dark .bento-card {
+        background: rgba(15, 23, 42, 0.88);
+        border-color: rgba(51, 65, 85, 0.8);
+        box-shadow: 0 16px 36px -14px rgba(0, 0, 0, 0.7);
+      }
+      button,
+      .interactive-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      button:active {
+        transform: scale(0.97);
+      }
+      .btn-glow {
+        background: linear-gradient(135deg, #4338ca 0%, #4f46e5 50%, #6d28d9 100%);
+        color: #ffffff;
+        box-shadow: 0 6px 18px -4px rgba(79, 70, 229, 0.6);
+      }
+      .btn-glow:hover {
+        filter: brightness(1.09);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px -5px rgba(79, 70, 229, 0.85);
+      }
+      .btn-glow::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 65%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+        transform: skewX(-20deg);
+        transition: left 0.55s ease;
+        pointer-events: none;
+      }
+      .btn-glow:hover::after {
+        left: 140%;
+      }
+      .decision-card:has(input:checked) {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.16);
+        background: rgba(238, 242, 255, 0.72);
+      }
+      html.dark .decision-card:has(input:checked) {
+        background: rgba(49, 46, 129, 0.35);
+        border-color: #a5b4fc;
+      }
+      .queue-item.active {
+        background: #4f46e5;
+        color: #fff;
+        border-color: #4f46e5;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+      html.dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+      }
+    </style>
+  </head>
+  <body class="h-full font-sans text-slate-800 dark:text-slate-100 antialiased flex overflow-hidden bg-slate-100 dark:bg-slate-950">
+    <aside
+      class="w-64 text-slate-300 flex flex-col shrink-0 border-r border-slate-800/80 select-none z-20"
+      style="background: radial-gradient(380px 260px at 0% 0%, rgba(99, 102, 241, 0.3), transparent 70%), linear-gradient(180deg, #060913 0%, #0f172a 100%);"
+    >
+      <div class="h-16 px-5 flex items-center gap-3 border-b border-white/10">
+        <div class="w-9 h-9 rounded-xl btn-glow flex items-center justify-center text-white font-bold shrink-0">
+          <i class="fa-solid fa-industry text-sm"></i>
+        </div>
+        <div class="overflow-hidden">
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-white text-sm tracking-tight">SongNhat CRM</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 font-bold">W03</span>
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">Data Steward · Đề xuất</p>
+        </div>
+      </div>
+
+      <nav class="px-3 py-4 flex-1 overflow-y-auto space-y-1.5" aria-label="Điều hướng">
+        <p class="px-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Luồng làm việc</p>
+        <a
+          data-dashboard-link
+          href="index.html"
+          class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white"
+        >
+          <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+          <span>Tổng quan &amp; danh sách</span>
+        </a>
+        <a
+          href="duplicate_review.html"
+          aria-current="page"
+          class="btn-glow w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-white"
+        >
+          <span class="flex items-center gap-2.5">
+            <i class="fa-solid fa-code-compare w-4 text-center"></i>
+            <span>Đối chiếu &amp; đề xuất</span>
+          </span>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/25">Steward</span>
+        </a>
+      </nav>
+
+      <div class="m-3 p-3.5 rounded-xl bg-white/5 border border-white/10 text-[11px] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Chỉ ghi đề xuất
+          </span>
+          <span class="font-mono text-[10px] text-indigo-300">No crosswalk</span>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-relaxed">
+          Phiên này cố định vai trò Data Steward. Gửi biểu mẫu không kích hoạt Canonical Crosswalk và không mở bước Approver.
+        </p>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <header class="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between shrink-0 z-10 gap-3">
+        <div class="flex items-center gap-2 text-xs min-w-0">
+          <span class="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 font-mono font-bold text-[11px] shrink-0">SongNhat RFP</span>
+          <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 shrink-0"></i>
+          <span class="font-extrabold text-slate-900 dark:text-white truncate">Đối chiếu cặp nghi trùng &amp; đề xuất xét duyệt</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span id="badge-data" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wide bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-400/50">
+            <i class="fa-solid fa-database"></i>
+            MOCK · Dữ liệu giả lập
+          </span>
+          <span id="badge-pending" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wide bg-sky-500/15 text-sky-800 dark:text-sky-200 border border-sky-400/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+            PENDING · Chờ xử lý
+          </span>
+          <button
+            type="button"
+            id="btn-dark"
+            class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-300 flex items-center justify-center"
+            title="Chuyển giao diện sáng hoặc tối"
+          >
+            <i id="icon-dark" class="fa-solid fa-moon"></i>
+          </button>
+          <div class="hidden sm:block text-right leading-tight pl-1">
+            <div class="text-xs font-bold">Data Steward</div>
+            <div class="text-[11px] text-slate-500">Phiên đề xuất · W03</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-[1440px] mx-auto space-y-5">
+          <section
+            class="relative overflow-hidden rounded-2xl p-6 text-white shadow-xl"
+            style="background: linear-gradient(125deg, #060913 0%, #1e1b4b 45%, #3730a3 80%, #4f46e5 100%);"
+          >
+            <div class="relative flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+              <div class="space-y-2 max-w-3xl">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-indigo-200">Package C · Side-by-side evidence</p>
+                <h1 id="pair-heading" class="text-2xl font-extrabold tracking-tight">Đang mở cặp nghi trùng</h1>
+                <p id="pair-summary" class="text-sm text-indigo-100/90"></p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="px-3 py-2 rounded-xl bg-white/10 border border-white/15">
+                  <div class="text-[10px] uppercase tracking-wider text-indigo-200">Điểm tương đồng</div>
+                  <div id="pair-score" class="font-mono text-xl font-extrabold">—</div>
+                </div>
+                <div class="px-3 py-2 rounded-xl bg-white/10 border border-white/15">
+                  <div class="text-[10px] uppercase tracking-wider text-indigo-200">proposed_category</div>
+                  <div id="pair-category" class="font-mono text-sm font-bold">—</div>
+                </div>
+                <div class="px-3 py-2 rounded-xl bg-white/10 border border-white/15">
+                  <div class="text-[10px] uppercase tracking-wider text-indigo-200">review_state</div>
+                  <div id="pair-state" class="font-mono text-sm font-bold">NEW</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div id="missing-banner" class="hidden bento-card p-4 border border-amber-300 text-sm text-amber-900 dark:text-amber-100"></div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5 items-start">
+            <section class="bento-card p-3 xl:sticky xl:top-4" aria-label="Hàng đợi cặp nghi trùng">
+              <div class="px-2 pt-1 pb-3 flex items-center justify-between">
+                <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Hàng đợi cặp</h2>
+                <span id="queue-count" class="font-mono text-[11px] text-indigo-600 dark:text-indigo-300"></span>
+              </div>
+              <div id="pair-queue" class="space-y-1.5 max-h-[70vh] overflow-y-auto pr-1"></div>
+            </section>
+
+            <div class="space-y-5 min-w-0">
+              <section id="record-heads" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></section>
+
+              <section class="bento-card p-4 sm:p-5 space-y-4">
+                <div class="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h2 class="text-sm font-extrabold">Đối chiếu từng trường</h2>
+                    <p class="text-xs text-slate-500 mt-1">Mỗi trường hiện giá trị thô và giá trị đã chuẩn hóa theo <span class="font-mono">normalizer.py</span>.</p>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                    <span class="px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Khớp</span>
+                    <span class="px-2 py-1 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-200">Một phần</span>
+                    <span class="px-2 py-1 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300">Lệch</span>
+                    <span class="px-2 py-1 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300">Thiếu</span>
+                  </div>
+                </div>
+                <div id="field-compare" class="space-y-3"></div>
+              </section>
+
+              <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bento-card p-4 sm:p-5 space-y-3">
+                  <h2 class="text-sm font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus"></i> Bằng chứng tích cực
+                  </h2>
+                  <div id="evidence-positive" class="space-y-2"></div>
+                </div>
+                <div class="bento-card p-4 sm:p-5 space-y-3">
+                  <h2 class="text-sm font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-minus"></i> Bằng chứng tiêu cực
+                  </h2>
+                  <div id="evidence-negative" class="space-y-2"></div>
+                </div>
+              </section>
+
+              <section class="bento-card p-4 sm:p-5">
+                <form id="proposal-form" class="space-y-4" novalidate>
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 class="text-sm font-extrabold">Đề xuất của Data Steward</h2>
+                      <p class="text-xs text-slate-500 mt-1 max-w-2xl">
+                        Chọn một trong bốn quyết định và ghi lý do. Thao tác này chỉ lưu đề xuất, giữ trạng thái chờ xử lý, và không gọi kích hoạt crosswalk.
+                      </p>
+                    </div>
+                    <span class="text-[11px] font-mono px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">ReviewDecisionRequest</span>
+                  </div>
+
+                  <fieldset>
+                    <legend class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mb-2">decision_category</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="decision-grid">
+                      <label class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-3">
+                        <input class="mt-1 text-indigo-600" type="radio" name="decision_category" value="same" />
+                        <span>
+                          <span class="block text-sm font-bold">same · Cùng thực thể</span>
+                          <span class="block text-[11px] text-slate-500 mt-0.5">Đề xuất dùng chung định danh. Chưa cấp Canonical ID.</span>
+                        </span>
+                      </label>
+                      <label class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-3">
+                        <input class="mt-1 text-indigo-600" type="radio" name="decision_category" value="related" />
+                        <span>
+                          <span class="block text-sm font-bold">related · Liên quan, khác thực thể</span>
+                          <span class="block text-[11px] text-slate-500 mt-0.5">Công ty mẹ, chi nhánh hoặc nhà máy. Không gộp hồ sơ.</span>
+                        </span>
+                      </label>
+                      <label class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-3">
+                        <input class="mt-1 text-indigo-600" type="radio" name="decision_category" value="distinct" />
+                        <span>
+                          <span class="block text-sm font-bold">distinct · Khác biệt</span>
+                          <span class="block text-[11px] text-slate-500 mt-0.5">Bác bỏ nghi trùng. Hai hồ sơ là hai thực thể.</span>
+                        </span>
+                      </label>
+                      <label class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-3">
+                        <input class="mt-1 text-indigo-600" type="radio" name="decision_category" value="insufficient" />
+                        <span>
+                          <span class="block text-sm font-bold">insufficient · Chưa đủ bằng chứng</span>
+                          <span class="block text-[11px] text-slate-500 mt-0.5">Tạm hoãn. Giữ hàng đợi cho đến khi có thêm nguồn.</span>
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="block text-xs font-bold space-y-1.5">
+                      <span>left_source_key</span>
+                      <input id="field-left" name="left_source_key" readonly class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 font-mono text-xs" />
+                    </label>
+                    <label class="block text-xs font-bold space-y-1.5">
+                      <span>right_source_key</span>
+                      <input id="field-right" name="right_source_key" readonly class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 font-mono text-xs" />
+                    </label>
+                  </div>
+
+                  <label class="block text-xs font-bold space-y-1.5">
+                    <span>steward_user</span>
+                    <input
+                      id="field-steward"
+                      name="steward_user"
+                      required
+                      value="data.steward"
+                      autocomplete="username"
+                      class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    />
+                    <span class="block font-medium text-slate-500">Người đề xuất. Vai trò trên màn hình này không đổi sang Approver.</span>
+                  </label>
+
+                  <label class="block text-xs font-bold space-y-1.5">
+                    <span class="flex items-center justify-between">
+                      <span>reason</span>
+                      <span id="reason-count" class="font-mono font-medium text-slate-400">0 ký tự</span>
+                    </span>
+                    <textarea
+                      id="field-reason"
+                      name="reason"
+                      required
+                      minlength="15"
+                      rows="4"
+                      placeholder="Ví dụ: MST và SĐT chuẩn hóa trùng, địa chỉ lệch do đổi trụ sở. Đề xuất same, chờ Approver ở đợt sau."
+                      class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm font-medium"
+                    ></textarea>
+                  </label>
+
+                  <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <p id="form-error" class="text-xs font-semibold text-rose-600 min-h-[1rem]" role="alert"></p>
+                    <div class="flex items-center gap-2">
+                      <button type="button" id="btn-clear" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800">
+                        Gỡ đề xuất cục bộ
+                      </button>
+                      <button type="submit" class="btn-glow px-4 py-2 rounded-xl text-xs font-bold">
+                        <i class="fa-solid fa-paper-plane mr-1"></i>
+                        Ghi nhận đề xuất
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <div id="proposal-result" class="hidden mt-4 rounded-xl border border-emerald-300/70 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/30 p-4 space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-sm font-extrabold text-emerald-800 dark:text-emerald-200">Đã ghi đề xuất. Crosswalk chưa kích hoạt.</p>
+                    <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-800 dark:text-sky-200">PENDING</span>
+                  </div>
+                  <p class="text-xs text-emerald-900/80 dark:text-emerald-100/80">
+                    Bản ghi dưới đây khớp các trường của <span class="font-mono">ReviewDecisionRequest</span>.
+                    <span class="font-mono">approver_user</span> để trống. Không có yêu cầu tới <span class="font-mono">POST /api/approve</span> hay <span class="font-mono">/api/export/crosswalk.csv</span>.
+                  </p>
+                  <pre id="proposal-json" class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all text-slate-800 dark:text-slate-100"></pre>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs"></div>
+
+    <script>
+      const DECISIONS = ["same", "related", "distinct", "insufficient"];
+      const STORE_KEY = "ai13-steward-proposals-w03";
+
+      const RAW_RECORDS = {
+        "ACC-ERP-1042": rec({
+          source_key: "ACC-ERP-1042",
+          source_system: "ERP",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty Cổ phần Cơ khí Chính xác Đại Nam",
+          tax_code: "0314892100",
+          phone: "02838112233",
+          email: "sales@dainam-mech.vn",
+          address: "Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM",
+          source_file: "mock:index.html · Account_ERP.csv",
+        }),
+        "ACC-SRV-2089": rec({
+          source_key: "ACC-SRV-2089",
+          source_system: "SERVICE",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "CTCP Co khi Chinh xac Dai Nam",
+          tax_code: "0314892100",
+          phone: "+842838112233",
+          email: "info@dainam-mech.vn",
+          address: "142 Cộng Hòa, Phường 4, Quận Tân Bình, TP.HCM",
+          source_file: "mock:index.html · Account_Service.csv",
+        }),
+        "ACC-ERP-1055": rec({
+          source_key: "ACC-ERP-1055",
+          source_system: "ERP",
+          entity_type: "BRANCH",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty CP Cơ khí Đại Nam — Chi nhánh Nhà máy Bình Dương",
+          tax_code: "0314892100-001",
+          phone: "02838112233",
+          email: "plant.bd@dainam-mech.vn",
+          address: "Đường số 6, KCN VSIP 1, TP. Thuận An, Bình Dương",
+          source_file: "mock:index.html · Account_ERP.csv",
+        }),
+        "ACC-ERP-1074": rec({
+          source_key: "ACC-ERP-1074",
+          source_system: "ERP",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Thiết bị Thủy lực Á Châu",
+          tax_code: "0309887766",
+          phone: "02839998888",
+          email: "contact@achau-hydraulics.vn",
+          address: "KCN Hiệp Phước, Huyện Nhà Bè, TP.HCM",
+          source_file: "mock:index.html · Account_ERP.csv",
+        }),
+        "ACC-SRV-2099": rec({
+          source_key: "ACC-SRV-2099",
+          source_system: "SERVICE",
+          entity_type: "SITE",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Thiết bị Thủy lực Á Châu (Xưởng Dịch vụ)",
+          tax_code: "3702554411",
+          phone: "02839998888",
+          email: "service@achau-hydraulics.vn",
+          address: "KCN Sóng Thần 2, TP. Dĩ An, Bình Dương",
+          source_file: "mock:index.html · Account_Service.csv",
+        }),
+        "CON-CRM-3012": rec({
+          source_key: "CON-CRM-3012",
+          source_system: "CRM",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyễn Minh Tuấn",
+          phone: "0908123456",
+          email: "tuan.nm@dainam-mech.vn",
+          company_name: "CTCP Cơ khí Chính xác Đại Nam",
+          address: "Quận Tân Phú, TP.HCM",
+          affiliation_dates: "03/2024 – Nay",
+          source_file: "mock:index.html · Contact_CRM.csv",
+        }),
+        "CON-CRM-3088": rec({
+          source_key: "CON-CRM-3088",
+          source_system: "CRM",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyen Minh Tuan",
+          phone: "+84 908 123 456",
+          email: "tuan.nguyen@dainam-mech.vn",
+          company_name: "CTCP Co khi Chinh xac Dai Nam",
+          address: "KCN Tân Bình, TP.HCM",
+          affiliation_dates: "03/2024 – Nay",
+          source_file: "mock:index.html · Contact_CRM.csv",
+        }),
+        "ACC-1042": rec({
+          source_key: "ACC-1042",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Phần mềm FPT",
+          tax_code: "0101248141",
+          phone: "0908123456",
+          email: "contact@fpt.com.vn",
+          address: "Khu Công nghệ cao, TP. Thủ Đức, TP.HCM",
+          source_file: "data/sample_csv/accounts_source_a.csv",
+        }),
+        "ACC-1089": rec({
+          source_key: "ACC-1089",
+          source_system: "CRM_SOUTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Cty TNHH Phan mem FPT",
+          tax_code: "0101248141",
+          phone: "+84908123456",
+          email: "contact@fpt.com.vn",
+          address: "Lô E2a-7, Đường D1, KCNC, Quận 9, TP.HCM",
+          source_file: "data/sample_csv/accounts_source_b.csv",
+        }),
+        "ACC-2010": rec({
+          source_key: "ACC-2010",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty CP Cơ khí Công nghiệp Đại Nam",
+          tax_code: "0314892100",
+          phone: "02838991122",
+          email: "sales@dainam-ind.vn",
+          address: "Quận 12, TP.HCM",
+          source_file: "data/sample_csv/accounts_source_a.csv",
+        }),
+        "ACC-2015": rec({
+          source_key: "ACC-2015",
+          source_system: "CRM_SOUTH",
+          entity_type: "BRANCH",
+          entity_pool: "ACCOUNT",
+          legal_name: "Chi nhánh Công ty CP Cơ khí Đại Nam - Nhà máy Bình Dương",
+          tax_code: "0314892100-001",
+          phone: "02838991122",
+          email: "sales@dainam-ind.vn",
+          address: "KCN VSIP 1, Thuận An, Bình Dương",
+          source_file: "data/sample_csv/accounts_source_b.csv",
+        }),
+        "PER-3011": rec({
+          source_key: "PER-3011",
+          source_system: "WEB_LEAD",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyễn Minh Tuấn",
+          phone: "0908123456",
+          email: "tuan.nm@fpt.com.vn",
+          company_name: "FPT Software HCM",
+          affiliation_dates: "2023-2026",
+          source_file: "data/sample_csv/contacts_source.csv",
+        }),
+        "PER-3088": rec({
+          source_key: "PER-3088",
+          source_system: "ZALO_LEAD",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyen Minh Tuan",
+          phone: "+84908123456",
+          email: "tuan.nm@fpt.com.vn",
+          company_name: "Công ty TNHH Phần mềm FPT",
+          affiliation_dates: "2023-2026",
+          source_file: "data/sample_csv/contacts_source.csv",
+        }),
+        "ACC-3001": rec({
+          source_key: "ACC-3001",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty Cổ phần VNG",
+          tax_code: "0303490096",
+          phone: "02839623888",
+          email: "info@vng.com.vn",
+          address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
+          source_file: "data/sample_csv/accounts_source_a.csv",
+        }),
+      };
+
+      function rec(row) {
+        return enrich({
+          legal_name: "",
+          full_name: "",
+          tax_code: "",
+          phone: "",
+          email: "",
+          address: "",
+          company_name: "",
+          affiliation_dates: "",
+          ...row,
+        });
+      }
+
+      function removeAccents(text) {
+        if (!text) return "";
+        const stripped = text.trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+        return stripped.replace(/đ/g, "d");
+      }
+
+      function normalizePhone(phone) {
+        const digits = String(phone || "").replace(/[^\d+]/g, "");
+        return digits.replace(/^\+?84/, "0");
+      }
+
+      function parseTax(taxCode) {
+        const raw = String(taxCode || "").trim();
+        const parts = raw.split("-");
+        return { root: parts[0] || "", branch: parts[1] || "" };
+      }
+
+      function enrich(row) {
+        const name = row.legal_name || row.full_name || "";
+        const tax = parseTax(row.tax_code);
+        return {
+          ...row,
+          norm_name_accent: String(name).trim().toLowerCase(),
+          norm_name_no_accent: removeAccents(name),
+          norm_phone: normalizePhone(row.phone),
+          norm_email: String(row.email || "").trim().toLowerCase(),
+          tax_root: tax.root,
+          tax_branch: tax.branch,
+        };
+      }
+
+      function pair(spec) {
+        return {
+          review_state: "NEW",
+          origin: "mock",
+          aliases: [],
+          ...spec,
+          id: spec.pair_id,
+          left: RAW_RECORDS[spec.left_source_key],
+          right: RAW_RECORDS[spec.right_source_key],
+        };
+      }
+
+      let pairs = [
+        pair({
+          pair_id: "PAIR-001",
+          aliases: ["ACC-ERP-1042", "ACC-SRV-2089"],
+          left_source_key: "ACC-ERP-1042",
+          right_source_key: "ACC-SRV-2089",
+          entity_pool: "ACCOUNT",
+          similarity_score: 94,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev("positive", "Trùng mã số thuế", "Cả hai bản ghi mang 0314892100, không có mã chi nhánh.", "Account_ERP.csv + Account_Service.csv · tax_code · matcher.compare_pair"),
+            ev("positive", "SĐT trùng sau chuẩn hóa", "02838112233 và +842838112233 cùng về norm_phone 02838112233.", "normalizer.normalize_phone_vn"),
+            ev("positive", "Tên pháp lý cùng thực thể", "Bản không dấu CTCP Co khi Chinh xac Dai Nam khớp tên có dấu của ERP.", "norm_name_no_accent · RapidFuzz token sort trong matcher"),
+            ev("negative", "Email giao dịch khác nhau", "sales@dainam-mech.vn và info@dainam-mech.vn là hai hộp thư, không đủ để tách thực thể.", "email · norm_email"),
+            ev("negative", "Địa chỉ trụ sở lệch thời điểm", "ERP ghi địa chỉ KCN Tân Bình, Service ghi 142 Cộng Hòa. Có thể là địa chỉ cũ và mới.", "address · nguồn Account_Service.csv"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-002",
+          aliases: ["ACC-ERP-1055"],
+          left_source_key: "ACC-ERP-1055",
+          right_source_key: "ACC-ERP-1042",
+          entity_pool: "ACCOUNT",
+          similarity_score: 82,
+          proposed_category: "RELATED_BUT_DISTINCT",
+          suggested_decision: "related",
+          evidence: [
+            ev("positive", "Cùng MST gốc", "tax_root 0314892100 xuất hiện ở cả trụ sở và nhà máy.", "parse_tax_code · tax_root"),
+            ev("positive", "Tổng đài dùng chung", "norm_phone 02838112233 trùng với công ty mẹ.", "normalizer.normalize_phone_vn"),
+            ev("negative", "Khác mã chi nhánh", "Bên trái có tax_branch 001. Matcher gắn xung đột PARENT_BRANCH_RELATIONSHIP.", "matcher.compare_pair · conflicts"),
+            ev("negative", "Khác loại thực thể và địa bàn", "BRANCH tại VSIP Bình Dương so với COMPANY tại Tân Phú. Không được gộp.", "entity_type · address"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-003",
+          aliases: ["ACC-ERP-1074", "ACC-SRV-2099"],
+          left_source_key: "ACC-ERP-1074",
+          right_source_key: "ACC-SRV-2099",
+          entity_pool: "ACCOUNT",
+          similarity_score: 79,
+          proposed_category: "SUSPECTED_DUPLICATE",
+          suggested_decision: "insufficient",
+          evidence: [
+            ev("positive", "Tên giao dịch gần nhau", "Cả hai hồ sơ mang cụm Thiết bị Thủy lực Á Châu.", "legal_name · norm_name_no_accent"),
+            ev("positive", "Trùng số tổng đài", "norm_phone cùng là 02839998888.", "normalizer.normalize_phone_vn"),
+            ev("negative", "Xung đột mã số thuế", "0309887766 khác 3702554411. Không cùng tax_root nên không thể kết luận same.", "tax_code · MAT-05"),
+            ev("negative", "Email và địa bàn tách nhau", "contact@ tại Nhà Bè, service@ tại Dĩ An. Có thể là hai pháp nhân hoặc dữ liệu chưa đủ.", "email · address · Account_Service.csv"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-004",
+          aliases: ["CON-CRM-3012", "CON-CRM-3088"],
+          left_source_key: "CON-CRM-3012",
+          right_source_key: "CON-CRM-3088",
+          entity_pool: "CONTACT",
+          similarity_score: 91,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev("positive", "Họ tên khớp khi bỏ dấu", "Nguyễn Minh Tuấn và Nguyen Minh Tuan cùng norm_name_no_accent.", "normalizer.remove_accents"),
+            ev("positive", "SĐT di động trùng", "+84 908 123 456 chuẩn hóa thành 0908123456.", "normalizer.normalize_phone_vn"),
+            ev("positive", "Cùng đơn vị Đại Nam", "Tên công ty chỉ khác cách viết có dấu.", "company_name · Contact_CRM.csv"),
+            ev("negative", "Email cá nhân không trùng tuyệt đối", "tuan.nm@ và tuan.nguyen@ cùng miền nhưng khác local-part.", "norm_email"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-005",
+          aliases: ["ACC-1042", "ACC-1089"],
+          left_source_key: "ACC-1042",
+          right_source_key: "ACC-1089",
+          entity_pool: "ACCOUNT",
+          similarity_score: 96.5,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev("positive", "Trùng MST 0101248141", "Hai dòng CSV account dùng cùng mã số thuế.", "accounts_source_a.csv · accounts_source_b.csv · tax_code"),
+            ev("positive", "Email và SĐT trùng sau chuẩn hóa", "contact@fpt.com.vn giữ nguyên; +84908123456 về 0908123456.", "norm_email · norm_phone"),
+            ev("positive", "Tên thương mại cùng pháp nhân", "Cty TNHH Phan mem FPT là cách viết rút gọn của tên có dấu.", "legal_name · norm_name_no_accent"),
+            ev("negative", "Địa chỉ hành chính khác cách ghi", "Thủ Đức và Quận 9 cùng khu công nghệ cao nhưng chuỗi thô không giống nhau.", "address"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-006",
+          aliases: ["ACC-2010", "ACC-2015"],
+          left_source_key: "ACC-2010",
+          right_source_key: "ACC-2015",
+          entity_pool: "ACCOUNT",
+          similarity_score: 90,
+          proposed_category: "RELATED_BUT_DISTINCT",
+          suggested_decision: "related",
+          evidence: [
+            ev("positive", "Cùng MST gốc và email", "tax_root 0314892100 và sales@dainam-ind.vn xuất hiện ở cả hai nguồn.", "accounts_source_a.csv · accounts_source_b.csv"),
+            ev("positive", "SĐT tổng đài trùng", "02838991122 không đổi sau chuẩn hóa.", "norm_phone"),
+            ev("negative", "Mã chi nhánh -001", "Bên phải là BRANCH. conflicts chứa PARENT_BRANCH_RELATIONSHIP.", "matcher.compare_pair"),
+            ev("negative", "Địa bàn nhà máy khác trụ sở", "Quận 12 so với KCN VSIP 1, Thuận An.", "address · entity_type"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-007",
+          aliases: ["PER-3011", "PER-3088"],
+          left_source_key: "PER-3011",
+          right_source_key: "PER-3088",
+          entity_pool: "CONTACT",
+          similarity_score: 62.6,
+          proposed_category: "SUSPECTED_DUPLICATE",
+          suggested_decision: "same",
+          evidence: [
+            ev("positive", "Trùng người liên hệ", "Họ tên bỏ dấu, email và SĐT chuẩn hóa đều khớp.", "contacts_source.csv · WEB_LEAD · ZALO_LEAD"),
+            ev("negative", "Điểm mô phỏng dưới ngưỡng 65", "Công thức matcher có thể chưa đưa cặp này vào /api/candidates. Steward vẫn được đề xuất.", "backend/config.py · SUSPECTED_THRESHOLD"),
+            ev("negative", "Tên đơn vị viết khác mức độ đầy đủ", "FPT Software HCM và Công ty TNHH Phần mềm FPT không phải chuỗi bằng nhau.", "company_name"),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-008",
+          aliases: ["ACC-3001"],
+          left_source_key: "ACC-1042",
+          right_source_key: "ACC-3001",
+          entity_pool: "ACCOUNT",
+          similarity_score: 18,
+          proposed_category: "DISTINCT",
+          suggested_decision: "distinct",
+          evidence: [
+            ev("negative", "MST, SĐT, email và tên đều khác", "FPT 0101248141 không chia khóa nào với VNG 0303490096.", "accounts_source_a.csv"),
+            ev("negative", "Chỉ cùng thành phố trên địa chỉ", "Cả hai ở TP.HCM. Đây không phải bằng chứng cùng thực thể.", "address"),
+          ],
+        }),
+      ];
+
+      function ev(polarity, title, detail, source) {
+        return { polarity, title, detail, source };
+      }
+
+      const state = { activeId: "PAIR-001", apiLoaded: false };
+
+      function esc(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function displayName(row) {
+        return row.legal_name || row.full_name || row.source_key;
+      }
+
+      function tokenSim(a, b) {
+        const left = new Set(removeAccents(a).split(/[^a-z0-9]+/).filter(Boolean));
+        const right = new Set(removeAccents(b).split(/[^a-z0-9]+/).filter(Boolean));
+        if (!left.size || !right.size) return 0;
+        let shared = 0;
+        left.forEach((token) => {
+          if (right.has(token)) shared += 1;
+        });
+        return Math.round((2 * shared * 100) / (left.size + right.size));
+      }
+
+      function fieldPlan(left, right) {
+        const contact = left.entity_type === "CONTACT" || right.entity_type === "CONTACT";
+        const fields = [
+          {
+            key: "name",
+            label: contact ? "Họ tên / tên pháp lý" : "Tên pháp lý",
+            raw: (row) => row.legal_name || row.full_name || "",
+            norms: (row) => [
+              ["norm_name_accent", row.norm_name_accent || "—"],
+              ["norm_name_no_accent", row.norm_name_no_accent || "—"],
+            ],
+          },
+        ];
+        if (!contact || left.tax_code || right.tax_code) {
+          fields.push({
+            key: "tax_code",
+            label: "Mã số thuế",
+            raw: (row) => row.tax_code || "",
+            norms: (row) => [
+              ["tax_root", row.tax_root || "—"],
+              ["tax_branch", row.tax_branch || "—"],
+            ],
+          });
+        }
+        fields.push(
+          {
+            key: "phone",
+            label: "Số điện thoại",
+            raw: (row) => row.phone || "",
+            norms: (row) => [["norm_phone", row.norm_phone || "—"]],
+          },
+          {
+            key: "email",
+            label: "Email",
+            raw: (row) => row.email || "",
+            norms: (row) => [["norm_email", row.norm_email || "—"]],
+          },
+        );
+        if (left.address || right.address) {
+          fields.push({
+            key: "address",
+            label: "Địa chỉ",
+            raw: (row) => row.address || "",
+            norms: () => [],
+            normNote: "normalizer.py không có bước chuẩn hóa địa chỉ",
+          });
+        }
+        if (left.company_name || right.company_name) {
+          fields.push({
+            key: "company_name",
+            label: "Đơn vị công tác",
+            raw: (row) => row.company_name || "",
+            norms: (row) => [["bỏ dấu", removeAccents(row.company_name || "") || "—"]],
+          });
+        }
+        if (left.affiliation_dates || right.affiliation_dates) {
+          fields.push({
+            key: "affiliation",
+            label: "Thời gian gắn kết",
+            raw: (row) => row.affiliation_dates || "",
+            norms: () => [],
+            normNote: "Giữ nguyên giá trị thô",
+          });
+        }
+        fields.push(
+          {
+            key: "entity_type",
+            label: "Loại thực thể",
+            raw: (row) => row.entity_type || "",
+            norms: (row) => [["normalized", String(row.entity_type || "").trim().toUpperCase() || "—"]],
+          },
+          {
+            key: "source_system",
+            label: "Hệ thống nguồn",
+            raw: (row) => row.source_system || "",
+            norms: (row) => [["normalized", String(row.source_system || "").trim().toLowerCase() || "—"]],
+          },
+        );
+        return fields;
+      }
+
+      function signalFor(key, left, right) {
+        if (key === "phone") {
+          if (!left.norm_phone || !right.norm_phone) return { level: "missing", label: "Thiếu SĐT" };
+          return left.norm_phone === right.norm_phone
+            ? { level: "match", label: "Khớp chuẩn hóa" }
+            : { level: "conflict", label: "Lệch SĐT" };
+        }
+        if (key === "email") {
+          if (!left.norm_email || !right.norm_email) return { level: "missing", label: "Thiếu email" };
+          if (left.norm_email === right.norm_email) return { level: "match", label: "Khớp chuẩn hóa" };
+          const domain = (value) => value.split("@")[1] || "";
+          return domain(left.norm_email) && domain(left.norm_email) === domain(right.norm_email)
+            ? { level: "partial", label: "Cùng miền" }
+            : { level: "conflict", label: "Lệch email" };
+        }
+        if (key === "tax_code") {
+          if (!left.tax_root || !right.tax_root) return { level: "missing", label: "Thiếu MST" };
+          if (left.tax_code && left.tax_code === right.tax_code) return { level: "match", label: "Khớp tuyệt đối" };
+          if (left.tax_root === right.tax_root) return { level: "partial", label: "Cùng gốc, khác nhánh" };
+          return { level: "conflict", label: "Xung đột MST" };
+        }
+        if (key === "entity_type" || key === "source_system") {
+          const a = key === "entity_type" ? left.entity_type : left.source_system;
+          const b = key === "entity_type" ? right.entity_type : right.source_system;
+          if (!a || !b) return { level: "missing", label: "Thiếu" };
+          return String(a).toLowerCase() === String(b).toLowerCase()
+            ? { level: "match", label: "Cùng giá trị" }
+            : { level: "partial", label: "Khác nguồn / loại" };
+        }
+        const rawOf = (row) => row.legal_name || row.full_name || row.company_name || row.address || row.affiliation_dates || "";
+        const pick = key === "name"
+          ? [left.legal_name || left.full_name, right.legal_name || right.full_name]
+          : key === "company_name"
+            ? [left.company_name, right.company_name]
+            : key === "address"
+              ? [left.address, right.address]
+              : [rawOf(left), rawOf(right)];
+        if (!pick[0] || !pick[1]) return { level: "missing", label: "Thiếu giá trị" };
+        if (removeAccents(pick[0]) === removeAccents(pick[1])) return { level: "match", label: "Khớp sau bỏ dấu" };
+        const score = tokenSim(pick[0], pick[1]);
+        if (score >= 70) return { level: "partial", label: `Gần nhau ${score}%` };
+        return { level: "conflict", label: `Khác chuỗi ${score}%` };
+      }
+
+      const SIGNAL_STYLE = {
+        match: "bg-emerald-500/10 border-emerald-400/40 text-emerald-800 dark:text-emerald-200",
+        partial: "bg-amber-500/10 border-amber-400/40 text-amber-900 dark:text-amber-100",
+        conflict: "bg-rose-500/10 border-rose-400/40 text-rose-800 dark:text-rose-200",
+        missing: "bg-slate-500/5 border-slate-300/70 text-slate-600 dark:text-slate-300",
+      };
+
+      function readStore() {
+        try {
+          return JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+        } catch (error) {
+          return {};
+        }
+      }
+
+      function writeStore(store) {
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      }
+
+      function storeKey(item) {
+        return [item.left_source_key, item.right_source_key].sort().join("|");
+      }
+
+      function savedFor(item) {
+        return readStore()[storeKey(item)] || null;
+      }
+
+      function activePair() {
+        return pairs.find((item) => item.pair_id === state.activeId) || pairs[0];
+      }
+
+      function dashboardUrl() {
+        return location.protocol === "file:" ? "index.html" : "/";
+      }
+
+      function reviewUrl(id) {
+        const path = location.pathname.endsWith("/review") ? "/review" : "duplicate_review.html";
+        return `${path}?id=${encodeURIComponent(id)}`;
+      }
+
+      function findPairFromQuery() {
+        const params = new URLSearchParams(location.search);
+        const id = params.get("id") || params.get("pair_id") || params.get("pair");
+        const left = params.get("left") || params.get("left_source_key");
+        const right = params.get("right") || params.get("right_source_key");
+        if (left && right) {
+          const both = pairs.find((item) => {
+            const keys = [item.left_source_key, item.right_source_key];
+            return keys.includes(left) && keys.includes(right);
+          });
+          if (both) return { pair: both, missing: false };
+        }
+        if (!id) return { pair: pairs[0], missing: false };
+        const exact = pairs.find(
+          (item) => item.pair_id === id || String(item.id) === id || item.aliases.includes(id),
+        );
+        if (exact) return { pair: exact, missing: false };
+        const asLeft = pairs.find((item) => item.left_source_key === id);
+        if (asLeft) return { pair: asLeft, missing: false };
+        const asRight = pairs.find((item) => item.right_source_key === id);
+        if (asRight) return { pair: asRight, missing: false };
+        return { pair: pairs[0], missing: true, requested: id };
+      }
+
+      function setDataBadge(item) {
+        const badge = document.getElementById("badge-data");
+        if (item.origin === "api") {
+          badge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wide bg-sky-500/15 text-sky-800 dark:text-sky-200 border border-sky-400/50";
+          badge.innerHTML = '<i class="fa-solid fa-plug"></i> API MẪU · /api/candidates';
+        } else {
+          badge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wide bg-amber-500/15 text-amber-800 dark:text-amber-200 border border-amber-400/50";
+          badge.innerHTML = '<i class="fa-solid fa-database"></i> MOCK · Dữ liệu giả lập';
+        }
+      }
+
+      function renderQueue() {
+        const host = document.getElementById("pair-queue");
+        host.innerHTML = pairs
+          .map((item) => {
+            const saved = savedFor(item);
+            const active = item.pair_id === state.activeId;
+            return `
+              <button type="button" data-pair="${esc(item.pair_id)}" class="queue-item w-full text-left px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50/70 dark:hover:bg-slate-800 ${active ? "active" : "text-slate-800 dark:text-slate-100"}">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-mono text-[11px] font-bold">${esc(item.pair_id)}</span>
+                  <span class="font-mono text-[10px]">${esc(item.similarity_score)}</span>
+                </div>
+                <div class="text-[11px] mt-1 leading-snug ${active ? "text-indigo-100" : "text-slate-600 dark:text-slate-300"}">${esc(displayName(item.left))}</div>
+                <div class="text-[10px] mt-1 flex items-center gap-1.5 ${active ? "text-indigo-100" : "text-slate-500"}">
+                  <span class="px-1.5 py-0.5 rounded bg-black/20 font-bold">PENDING</span>
+                  <span>${saved ? "Đã ghi đề xuất" : item.entity_pool}</span>
+                </div>
+              </button>`;
+          })
+          .join("");
+        document.getElementById("queue-count").textContent = `${pairs.length} cặp`;
+        host.querySelectorAll("[data-pair]").forEach((button) => {
+          button.addEventListener("click", () => selectPair(button.dataset.pair, true));
+        });
+      }
+
+      function sideCard(row, side) {
+        return `
+          <article class="bento-card p-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">${side}</span>
+              <span class="font-mono text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">${esc(row.entity_type)} · ${esc(row.entity_pool || "")}</span>
+            </div>
+            <h3 class="text-base font-extrabold leading-snug">${esc(displayName(row))}</h3>
+            <p class="font-mono text-xs text-indigo-700 dark:text-indigo-300">${esc(row.source_key)}</p>
+            <p class="text-[11px] text-slate-500">${esc(row.source_system)} · ${esc(row.source_file || "nguồn mẫu")}</p>
+          </article>`;
+      }
+
+      function normBlock(field, row) {
+        const lines = field.norms(row);
+        if (!lines.length) {
+          return `<p class="text-[11px] text-slate-500 mt-2">${esc(field.normNote || "Không có giá trị chuẩn hóa riêng.")}</p>`;
+        }
+        return `<dl class="mt-2 space-y-1">${lines
+          .map(
+            ([label, value]) =>
+              `<div class="flex gap-2 text-[11px]"><dt class="font-mono text-slate-500 shrink-0">${esc(label)}</dt><dd class="font-mono font-semibold break-all">${esc(value || "—")}</dd></div>`,
+          )
+          .join("")}</dl>`;
+      }
+
+      function renderFields(item) {
+        const host = document.getElementById("field-compare");
+        const header = `
+          <div class="hidden lg:grid grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 px-1">
+            <div>Trường</div>
+            <div>Bản ghi trái · thô / chuẩn hóa</div>
+            <div>Bản ghi phải · thô / chuẩn hóa</div>
+          </div>`;
+        host.innerHTML = header + fieldPlan(item.left, item.right)
+          .map((field) => {
+            const signal = signalFor(field.key, item.left, item.right);
+            const tone = SIGNAL_STYLE[signal.level];
+            const cell = (row) => `
+              <div class="rounded-xl border p-3 ${tone}">
+                <div class="text-[10px] font-bold uppercase tracking-wider opacity-70">Giá trị thô</div>
+                <div class="text-sm font-semibold mt-1 break-words">${esc(field.raw(row) || "—")}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider opacity-70 mt-3">Giá trị chuẩn hóa</div>
+                ${normBlock(field, row)}
+              </div>`;
+            return `
+              <div class="grid grid-cols-1 lg:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] gap-2 items-stretch">
+                <div class="flex lg:flex-col justify-between gap-2 px-1 py-1">
+                  <div class="text-xs font-extrabold">${esc(field.label)}</div>
+                  <span class="self-start text-[10px] font-extrabold px-2 py-1 rounded-full border ${tone}">${esc(signal.label)}</span>
+                </div>
+                ${cell(item.left)}
+                ${cell(item.right)}
+              </div>`;
+          })
+          .join("");
+      }
+
+      function renderEvidence(item) {
+        const paint = (polarity, hostId) => {
+          const rows = item.evidence.filter((entry) => entry.polarity === polarity);
+          const host = document.getElementById(hostId);
+          if (!rows.length) {
+            host.innerHTML = '<p class="text-xs text-slate-500">Không có mục nào ở nhóm này.</p>';
+            return;
+          }
+          host.innerHTML = rows
+            .map(
+              (entry) => `
+                <article class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-1.5">
+                  <h3 class="text-sm font-bold">${esc(entry.title)}</h3>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${esc(entry.detail)}</p>
+                  <p class="text-[11px] font-mono text-indigo-700 dark:text-indigo-300 break-words">Nguồn: ${esc(entry.source)}</p>
+                </article>`,
+            )
+            .join("");
+        };
+        paint("positive", "evidence-positive");
+        paint("negative", "evidence-negative");
+      }
+
+      function fillForm(item) {
+        const saved = savedFor(item);
+        document.getElementById("field-left").value = item.left_source_key;
+        document.getElementById("field-right").value = item.right_source_key;
+        const decision = saved?.decision_category || item.suggested_decision || "";
+        document.querySelectorAll('input[name="decision_category"]').forEach((input) => {
+          input.checked = input.value === decision;
+        });
+        document.getElementById("field-steward").value = saved?.steward_user || "data.steward";
+        document.getElementById("field-reason").value = saved?.reason || "";
+        updateReasonCount();
+        document.getElementById("form-error").textContent = "";
+        const result = document.getElementById("proposal-result");
+        if (saved) {
+          result.classList.remove("hidden");
+          document.getElementById("proposal-json").textContent = JSON.stringify(schemaPayload(saved), null, 2);
+        } else {
+          result.classList.add("hidden");
+          document.getElementById("proposal-json").textContent = "";
+        }
+      }
+
+      function schemaPayload(record) {
+        return {
+          left_source_key: record.left_source_key,
+          right_source_key: record.right_source_key,
+          decision_category: record.decision_category,
+          steward_user: record.steward_user,
+          approver_user: "",
+          reason: record.reason,
+        };
+      }
+
+      function renderPair() {
+        const item = activePair();
+        document.getElementById("pair-heading").textContent = `${item.pair_id} · ${item.left_source_key} ↔ ${item.right_source_key}`;
+        document.getElementById("pair-summary").textContent =
+          `${displayName(item.left)} đối chiếu với ${displayName(item.right)}. Gợi ý thuật toán: ${item.proposed_category} → ${item.suggested_decision}.`;
+        document.getElementById("pair-score").textContent = `${item.similarity_score}`;
+        document.getElementById("pair-category").textContent = item.proposed_category;
+        document.getElementById("pair-state").textContent = savedFor(item) ? "PENDING" : item.review_state || "NEW";
+        document.getElementById("record-heads").innerHTML = sideCard(item.left, "Bản ghi trái") + sideCard(item.right, "Bản ghi phải");
+        setDataBadge(item);
+        renderFields(item);
+        renderEvidence(item);
+        fillForm(item);
+        renderQueue();
+      }
+
+      function selectPair(pairId, push) {
+        state.activeId = pairId;
+        const banner = document.getElementById("missing-banner");
+        banner.classList.add("hidden");
+        if (push) {
+          const url = new URL(location.href);
+          url.searchParams.set("id", pairId);
+          url.searchParams.delete("pair_id");
+          url.searchParams.delete("pair");
+          history.pushState({ id: pairId }, "", url);
+        }
+        renderPair();
+      }
+
+      function updateReasonCount() {
+        const length = document.getElementById("field-reason").value.trim().length;
+        document.getElementById("reason-count").textContent = `${length} ký tự`;
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.remove("hidden");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.add("hidden"), 3600);
+      }
+
+      function applyQuery() {
+        const found = findPairFromQuery();
+        state.activeId = found.pair.pair_id;
+        const banner = document.getElementById("missing-banner");
+        if (found.missing) {
+          banner.classList.remove("hidden");
+          banner.textContent = `Không có cặp với id “${found.requested}”. Đang mở ${found.pair.pair_id}. Dùng ?id=PAIR-001 hoặc ?id=ACC-ERP-1042 như liên kết từ trang danh sách.`;
+        } else {
+          banner.classList.add("hidden");
+        }
+        renderPair();
+      }
+
+      async function loadApi() {
+        try {
+          const [recordsRes, candidatesRes] = await Promise.all([
+            fetch("/api/records"),
+            fetch("/api/candidates"),
+          ]);
+          if (!recordsRes.ok || !candidatesRes.ok) return;
+          const recordsJson = await recordsRes.json();
+          const candidatesJson = await candidatesRes.json();
+          const byKey = {};
+          (recordsJson.records || []).forEach((row) => {
+            byKey[row.source_key] = enrich({
+              ...row,
+              entity_pool: row.entity_type === "CONTACT" ? "CONTACT" : "ACCOUNT",
+              source_file: row.entity_type === "CONTACT" ? "contacts_source.csv" : "accounts_source_*.csv",
+            });
+          });
+          (candidatesJson.candidates || []).forEach((candidate) => {
+            const suggested =
+              candidate.proposed_category === "SAME_ENTITY"
+                ? "same"
+                : candidate.proposed_category === "RELATED_BUT_DISTINCT"
+                  ? "related"
+                  : candidate.proposed_category === "DISTINCT"
+                    ? "distinct"
+                    : "insufficient";
+            const incoming = {
+              pair_id: `API-${candidate.left_source_key}-${candidate.right_source_key}`,
+              aliases: [candidate.left_source_key, candidate.right_source_key],
+              left_source_key: candidate.left_source_key,
+              right_source_key: candidate.right_source_key,
+              entity_pool: candidate.entity_pool,
+              similarity_score: candidate.similarity_score,
+              proposed_category: candidate.proposed_category,
+              review_state: candidate.review_state || "NEW",
+              origin: "api",
+              suggested_decision: suggested,
+              left: byKey[candidate.left_source_key] || enrich({ source_key: candidate.left_source_key, legal_name: candidate.left_source_key }),
+              right: byKey[candidate.right_source_key] || enrich({ source_key: candidate.right_source_key, legal_name: candidate.right_source_key }),
+              evidence: [
+                ...(candidate.reasons || []).map((text) => ev("positive", text, "Matcher sinh bằng chứng này từ hai bản ghi đã chuẩn hóa.", "GET /api/candidates · backend/services/matcher.py")),
+                ...(candidate.conflicts || []).map((text) => ev("negative", text, "Xung đột này chặn kết luận same.", "GET /api/candidates · conflicts")),
+              ],
+            };
+            const index = pairs.findIndex((item) => storeKey(item) === storeKey(incoming));
+            if (index >= 0) {
+              const current = pairs[index];
+              pairs[index] = {
+                ...current,
+                similarity_score: incoming.similarity_score,
+                proposed_category: incoming.proposed_category,
+                review_state: incoming.review_state,
+                origin: "api",
+                left: incoming.left.legal_name || incoming.left.full_name ? incoming.left : current.left,
+                right: incoming.right.legal_name || incoming.right.full_name ? incoming.right : current.right,
+                evidence: current.evidence.length ? current.evidence : incoming.evidence,
+              };
+            } else {
+              incoming.id = incoming.pair_id;
+              pairs.push(incoming);
+            }
+          });
+          state.apiLoaded = true;
+          applyQuery();
+        } catch (error) {
+          state.apiLoaded = false;
+        }
+      }
+
+      document.getElementById("btn-dark").addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        const dark = document.documentElement.classList.contains("dark");
+        document.getElementById("icon-dark").className = dark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+      });
+
+      document.getElementById("field-reason").addEventListener("input", updateReasonCount);
+
+      document.getElementById("proposal-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const item = activePair();
+        const form = new FormData(event.currentTarget);
+        const payload = {
+          left_source_key: item.left_source_key,
+          right_source_key: item.right_source_key,
+          decision_category: String(form.get("decision_category") || ""),
+          steward_user: String(form.get("steward_user") || "").trim(),
+          approver_user: "",
+          reason: String(form.get("reason") || "").trim(),
+        };
+        const error = document.getElementById("form-error");
+        if (!DECISIONS.includes(payload.decision_category)) {
+          error.textContent = "Hãy chọn một quyết định: same, related, distinct hoặc insufficient.";
+          return;
+        }
+        if (!payload.steward_user) {
+          error.textContent = "Cần có steward_user của người đề xuất.";
+          return;
+        }
+        if (payload.reason.length < 15) {
+          error.textContent = "Lý do đề xuất cần ít nhất 15 ký tự.";
+          return;
+        }
+        error.textContent = "";
+        const record = {
+          ...payload,
+          pair_id: item.pair_id,
+          review_state: "PENDING",
+          crosswalk_activated: false,
+          recorded_at: new Date().toISOString(),
+        };
+        const store = readStore();
+        store[storeKey(item)] = record;
+        writeStore(store);
+        document.getElementById("proposal-result").classList.remove("hidden");
+        document.getElementById("proposal-json").textContent = JSON.stringify(schemaPayload(record), null, 2);
+        renderQueue();
+        document.getElementById("pair-state").textContent = "PENDING";
+        showToast("Đã ghi đề xuất. Trạng thái vẫn là pending, crosswalk chưa kích hoạt.");
+      });
+
+      document.getElementById("btn-clear").addEventListener("click", () => {
+        const item = activePair();
+        const store = readStore();
+        delete store[storeKey(item)];
+        writeStore(store);
+        fillForm(item);
+        renderQueue();
+        document.getElementById("pair-state").textContent = item.review_state || "NEW";
+        showToast("Đã gỡ đề xuất cục bộ của cặp này.");
+      });
+
+      window.addEventListener("popstate", applyQuery);
+
+      document.querySelectorAll("[data-dashboard-link]").forEach((link) => {
+        link.href = dashboardUrl();
+      });
+
+      applyQuery();
+      loadApi();
+    </script>
+  </body>
+</html>

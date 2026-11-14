@@ -30,8 +30,13 @@ def serve_dashboard():
     return {"message": "Server đang chạy. Mở /docs để xem API."}
 
 @app.get("/review")
+@app.get("/duplicate_review.html")
 def serve_duplicate_review():
     review_path = Path("frontend/duplicate_review.html")
     if review_path.exists() and review_path.stat().st_size > 0:
         return FileResponse(review_path)
+    return FileResponse(Path("frontend/index.html"))
+
+@app.get("/index.html")
+def serve_dashboard_file():
     return FileResponse(Path("frontend/index.html"))
