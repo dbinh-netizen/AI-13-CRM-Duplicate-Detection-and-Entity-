@@ -1,0 +1,484 @@
+erDiagram
+    %% ========================================================
+    %% SONGNHAT CRM ENTITY RESOLUTION - MASTER ERD (33 TABLES)
+    %% Version: 8.0 – Final Targeted Patch (Candidate Pair Reconciliation, Source-Specific Import Batches)
+    %% ========================================================
+
+    %% DOMAIN 1: USER & ACCESS CONTROL (5 TABLES)
+    users {
+        uuid id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar status
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    roles {
+        uuid id PK
+        varchar role_code UK
+        varchar role_name
+        text description
+        timestamp created_at
+    }
+
+    permissions {
+        uuid id PK
+        varchar permission_code UK
+        varchar resource
+        varchar action
+        text description
+    }
+
+    user_roles {
+        uuid user_id PK "FK to users"
+        uuid role_id PK "FK to roles"
+        timestamp granted_at
+        uuid granted_by FK
+    }
+
+    role_permissions {
+        uuid role_id PK "FK to roles"
+        uuid permission_id PK "FK to permissions"
+        timestamp granted_at
+    }
+
+    users ||--o{ user_roles : "has"
+    roles ||--o{ user_roles : "assigned to"
+    roles ||--o{ role_permissions : "includes"
+    permissions ||--o{ role_permissions : "granted to"
+
+    %% DOMAIN 2: SOURCE & INTAKE MANAGEMENT (8 TABLES)
+    source_systems {
+        uuid id PK
+        varchar source_code UK
+        varchar source_name
+        varchar entity_type UK "composite with id"
+        varchar schema_version
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    import_batches {
+        uuid id PK
+        uuid source_system_id FK "nullable for UNMAPPED_QUARANTINE" 
+        varchar batch_type
+        varchar file_name
+        varchar file_checksum
+        integer total_rows
+        integer accepted_rows
+        integer rejected_rows
+        integer quarantined_rows
+        varchar batch_status
+        timestamp extraction_at
+        timestamp imported_at
+        uuid uploaded_by FK
+        text error_summary
+        timestamp created_at
+    }
+
+    source_records {
+        uuid id PK
+        uuid source_system_id FK "composite with entity_type"
+        varchar source_key
+        varchar entity_type FK "composite with source_system_id"
+        varchar entity_subtype
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    source_record_versions {
+        uuid id PK
+        uuid source_record_id FK
+        integer version_number
+        uuid import_batch_id FK
+        jsonb raw_payload
+        varchar checksum
+        varchar row_anchor
+        timestamp extraction_at
+        timestamp imported_at
+        timestamp effective_from
+        timestamp effective_to
+        timestamp created_at
+    }
+
+    batch_row_results {
+        uuid id PK
+        uuid import_batch_id FK
+        integer row_number
+        varchar source_key
+        varchar row_status
+        jsonb validation_errors
+        text quarantine_reason
+        uuid source_record_id FK
+        uuid source_record_version_id FK
+        timestamp created_at
+    }
+
+    source_identifiers {
+        uuid id PK
+        uuid source_record_id FK
+        uuid source_record_version_id FK
+        varchar identifier_type
+        varchar identifier_value
+        varchar issuer
+        varchar jurisdiction
+        varchar entity_level
+        varchar verification_status
+        varchar source_field
+        timestamp valid_from
+        timestamp valid_to
+        timestamp created_at
+    }
+
+    matching_runs {
+        uuid id PK
+        varchar run_code UK
+        varchar entity_pool
+        varchar status
+        uuid policy_id FK
+        integer total_candidates
+        boolean ceiling_breached
+        timestamp started_at
+        timestamp completed_at
+        uuid executed_by FK
+        text notes
+        timestamp created_at
+    }
+
+    run_sources {
+        uuid id PK
+        uuid matching_run_id FK
+        uuid source_system_id FK
+        uuid import_batch_id FK
+        timestamp snapshot_cutoff
+        boolean is_complete
+        timestamp created_at
+    }
+
+    source_systems ||--o{ import_batches : "supplies"
+    source_systems ||--o{ source_records : "originates (composite FK: id, entity_type)"
+    source_records ||--o{ source_record_versions : "versioned into"
+    import_batches ||--o{ source_record_versions : "contains"
+    import_batches ||--o{ batch_row_results : "produces"
+    source_records ||--o{ source_identifiers : "identified by"
+    source_record_versions ||--o{ source_identifiers : "evidenced in"
+    matching_runs ||--o{ run_sources : "manifests"
+    source_systems ||--o{ run_sources : "binds"
+    import_batches ||--o{ run_sources : "locks (composite FK: id, source_system_id)"
+
+    %% DOMAIN 3: NORMALIZATION & MATCHING (5 TABLES)
+    normalization_policies {
+        uuid id PK
+        varchar policy_name
+        integer version
+        jsonb configuration
+        timestamp effective_from
+        timestamp effective_to
+        uuid created_by FK
+        timestamp created_at
+    }
+
+    normalized_features {
+        uuid id PK
+        uuid source_record_version_id FK
+        uuid normalization_policy_id FK
+        varchar field_name
+        text raw_value
+        text normalized_value
+        varchar feature_status
+        timestamp created_at
+    }
+
+    candidate_pairs {
+        uuid id PK
+        uuid matching_run_id FK
+        uuid left_source_record_id FK
+        uuid right_source_record_id FK
+        varchar entity_type
+        decimal total_score
+        varchar ranking_category
+        varchar decision_status
+        jsonb conflict_flags
+        integer policy_version
+        boolean is_migrated_legacy
+        text legacy_reasons_raw
+        integer legacy_pair_id UK "1:1 anchor to legacy_candidate_pairs"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    candidate_blocking_paths {
+        uuid id PK
+        uuid candidate_pair_id FK
+        varchar blocking_key_name
+        varchar blocking_value
+        timestamp created_at
+    }
+
+    candidate_pair_evidence {
+        uuid id PK
+        uuid candidate_pair_id FK
+        varchar field_name
+        text left_raw_value
+        text right_raw_value
+        text left_normalized_value
+        text right_normalized_value
+        decimal similarity_score
+        varchar evidence_direction
+        decimal evidence_weight
+        text explanation
+        integer policy_version
+        boolean is_legacy_evidence
+        varchar provenance
+        timestamp created_at
+    }
+
+    source_record_versions ||--o{ normalized_features : "yields"
+    normalization_policies ||--o{ normalized_features : "governed by"
+    normalization_policies ||--o{ matching_runs : "applies"
+    matching_runs ||--o{ candidate_pairs : "generates"
+    source_records ||--o{ candidate_pairs : "left participant (composite FK on id, entity_type)"
+    source_records ||--o{ candidate_pairs : "right participant (composite FK on id, entity_type)"
+    candidate_pairs ||--o{ candidate_blocking_paths : "blocked via"
+    candidate_pairs ||--o{ candidate_pair_evidence : "substantiated by"
+
+    %% DOMAIN 4: CLUSTER & REVIEW (5 TABLES)
+    candidate_clusters {
+        uuid id PK
+        uuid matching_run_id FK
+        varchar cluster_code UK
+        varchar entity_type
+        varchar review_status
+        integer member_count
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    candidate_cluster_members {
+        uuid id PK
+        uuid candidate_cluster_id FK
+        uuid source_record_id FK
+        varchar entity_type
+        varchar status
+        timestamp joined_at
+        timestamp left_at
+    }
+
+    review_tasks {
+        uuid id PK
+        uuid candidate_pair_id FK
+        uuid candidate_cluster_id FK
+        varchar task_type
+        varchar priority_tier
+        varchar status
+        uuid assigned_steward_id FK
+        uuid assigned_approver_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    review_decisions {
+        uuid id PK
+        uuid review_task_id FK
+        uuid candidate_pair_id FK
+        varchar proposed_decision
+        varchar final_decision
+        text decision_reason
+        jsonb evidence_snapshot
+        uuid proposed_by FK
+        uuid approved_by FK
+        varchar decision_status
+        timestamp decided_at
+        uuid superseded_by FK
+        timestamp created_at
+    }
+
+    pair_decision_constraints {
+        uuid id PK
+        uuid left_source_record_id FK
+        uuid right_source_record_id FK
+        varchar constraint_type
+        uuid established_by_decision_id FK
+        timestamp valid_from
+        timestamp valid_to
+        boolean is_active
+        timestamp created_at
+    }
+
+    matching_runs ||--o{ candidate_clusters : "groups"
+    candidate_clusters ||--o{ candidate_cluster_members : "contains (composite FK on id, entity_type)"
+    source_records ||--o{ candidate_cluster_members : "enrolled in (composite FK on id, entity_type)"
+    candidate_pairs ||--o{ review_tasks : "assigned in"
+    candidate_clusters ||--o{ review_tasks : "reviewed in"
+    review_tasks ||--o{ review_decisions : "concluded by"
+    review_decisions ||--o{ pair_decision_constraints : "enforces"
+
+    %% DOMAIN 5: CANONICAL RESOLUTION & RELATIONSHIPS (5 TABLES)
+    canonical_entities {
+        uuid id PK
+        varchar canonical_code UK
+        varchar entity_type
+        varchar entity_subtype
+        varchar status
+        uuid created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    canonical_memberships {
+        uuid id PK
+        uuid canonical_entity_id FK
+        uuid source_record_id FK
+        uuid source_record_version_id FK
+        varchar entity_type
+        timestamp valid_from
+        timestamp valid_to
+        varchar status
+        uuid decision_id FK
+        uuid approved_by FK
+        text decision_reason
+        timestamp created_at
+    }
+
+    canonical_fields {
+        uuid id PK
+        uuid canonical_entity_id FK
+        varchar field_name
+        text selected_value
+        timestamp valid_from
+        timestamp valid_to
+        uuid decision_id FK
+        varchar status
+        timestamp created_at
+    }
+
+    canonical_field_provenance {
+        uuid id PK
+        uuid canonical_field_id FK
+        uuid source_record_id FK
+        uuid source_record_version_id FK
+        varchar source_field
+        text original_value
+        text selected_value
+        varchar precedence_rule
+        text override_reason
+        timestamp effective_date
+        uuid approved_by FK
+        timestamp created_at
+    }
+
+    entity_relationships {
+        uuid id PK
+        uuid from_canonical_id FK
+        varchar from_entity_type
+        uuid to_canonical_id FK
+        varchar to_entity_type
+        varchar relationship_type
+        varchar direction
+        uuid source_record_id FK
+        timestamp valid_from
+        timestamp valid_to
+        varchar status
+        uuid decision_id FK
+        uuid approved_by FK
+        timestamp created_at
+    }
+
+    canonical_entities ||--o{ canonical_memberships : "unifies (composite FK on id, entity_type)"
+    source_records ||--o{ canonical_memberships : "member of (composite FK on id, entity_type)"
+    source_record_versions ||--o{ canonical_memberships : "version at linkage (composite FK on id, source_record_id)"
+    canonical_entities ||--o{ canonical_fields : "profiled by"
+    canonical_fields ||--o{ canonical_field_provenance : "traced to"
+    canonical_entities ||--o{ entity_relationships : "from entity (composite FK on id, entity_type)"
+    canonical_entities ||--o{ entity_relationships : "to entity (composite FK on id, entity_type)"
+    review_decisions ||--o{ canonical_memberships : "authorizes (composite FK on id, approved_by)"
+    review_decisions ||--o{ entity_relationships : "authorizes (composite FK on id, approved_by)"
+
+    %% DOMAIN 6: AUDIT & GOVERNANCE (3 TABLES)
+    audit_events {
+        uuid id PK
+        varchar event_id UK
+        uuid actor_id FK
+        varchar actor_role
+        varchar action
+        varchar target_type
+        varchar target_id
+        jsonb before_state
+        jsonb after_state
+        varchar request_id
+        uuid related_decision_id FK
+        integer policy_version
+        text reason
+        boolean is_migrated_legacy
+        boolean hash_generated_at_migration
+        varchar previous_hash
+        varchar record_hash
+        timestamp created_at
+    }
+
+    retention_policies {
+        uuid id PK
+        varchar data_category UK
+        integer retention_days
+        timestamp effective_date
+        varchar legal_basis
+        varchar policy_owner
+        varchar approval_status
+        timestamp review_date
+        timestamp created_at
+    }
+
+    deletion_ledger {
+        uuid id PK
+        varchar request_code UK
+        varchar deletion_type
+        varchar affected_target_type
+        varchar affected_target_id
+        timestamp executed_at
+        jsonb affected_data_scope
+        varchar execution_result
+        uuid approved_by FK
+        varchar backup_propagation_status
+        timestamp backup_purged_at
+        timestamp created_at
+    }
+
+    users ||--o{ audit_events : "performs"
+    review_decisions ||--o{ audit_events : "audited in"
+
+    %% DOMAIN 7: EXPORT MANAGEMENT (2 TABLES)
+    export_jobs {
+        uuid id PK
+        varchar export_code UK
+        varchar export_type
+        varchar permitted_audience
+        varchar file_path
+        varchar file_checksum
+        integer total_records_exported
+        varchar status
+        timestamp extraction_at
+        uuid requested_by FK
+        timestamp completed_at
+        timestamp created_at
+    }
+
+    export_manifest_items {
+        uuid id PK
+        uuid export_job_id FK
+        uuid canonical_entity_id FK
+        uuid source_record_id FK
+        uuid canonical_membership_id FK
+        integer mapping_version
+        varchar membership_status_at_export
+        boolean is_superseded
+        timestamp created_at
+    }
+
+    export_jobs ||--o{ export_manifest_items : "details"
+    canonical_entities ||--o{ export_manifest_items : "exported"
+    source_records ||--o{ export_manifest_items : "crosswalked"
