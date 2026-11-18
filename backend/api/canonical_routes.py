@@ -44,7 +44,7 @@ def ingest_source_file(
     """Ingest and validate a source CSV file with row-level categorization."""
     intake = IntakeService()
     try:
-        report = intake.ingest_file(
+        report = intake.ingest_csv_file(
             session=db,
             file_path_or_bytes=payload.file_path,
             source_code=payload.source_code,

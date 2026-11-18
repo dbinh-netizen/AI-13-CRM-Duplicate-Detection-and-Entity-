@@ -17,7 +17,16 @@ def get_all_source_records():
     records = load_all_csv_records()
     return {"total": len(records), "records": records}
 
-@router.get("/candidates")
+@router.get(
+    "/candidates",
+    summary="Preview duplicate candidates from CSV",
+    description=(
+        "Candidate preview generated from local CSV source files. "
+        "This endpoint does not query candidate_pairs in the database. "
+        "Results are for demonstration and integration testing only. "
+        "No automatic merge or CRM writeback is performed."
+    ),
+)
 def get_duplicate_candidates():
     records = load_all_csv_records()
     return generate_candidates(records)
