@@ -257,6 +257,45 @@
       html.dark ::-webkit-scrollbar-thumb {
         background: #334155;
       }
+      /* Hiệu ứng chuyển màn hình mượt & đánh bóng Glassmorphism W04 */
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      section:not(.hidden) {
+        animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .bento-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(18px) saturate(160%);
+        border: 1px solid rgba(226, 232, 240, 0.85);
+      }
+      html.dark .bento-card {
+        background: rgba(15, 23, 42, 0.78);
+        backdrop-filter: blur(18px) saturate(160%);
+        border-color: rgba(71, 85, 105, 0.45);
+      }
+      .live-dot {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulseRing 1.8s infinite;
+      }
+      @keyframes pulseRing {
+        0% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.65);
+        }
+        70% {
+          box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
     </style>
   </head>
 
@@ -3173,7 +3212,183 @@
         }
       }
 
-      async function tryConnectLiveApi() {
+      // ==================== FASTAPI ADAPTER CHUẨN (KAN-41) ====================
+      const FastApiAdapter = {
+        mapStatus(category, reviewState, conflicts = []) {
+          const st = String(reviewState || "").toUpperCase();
+          const cat = String(category || "").toUpperCase();
+          if (
+            st.includes("HOLD") ||
+            st.includes("HELD") ||
+            (conflicts && conflicts.length && cat !== "RELATED_BUT_DISTINCT")
+          ) {
+            return "HELD_CONFLICT";
+          }
+          if (cat === "RELATED_BUT_DISTINCT" || st === "RELATED")
+            return "APPROVED_RELATIONSHIP";
+          if (cat === "DISTINCT" || st === "REJECTED")
+            return "REJECTED_DISTINCT";
+          if (st === "APPROVED" || st === "RESOLVED")
+            return "APPROVED_DUPLICATE";
+          return "UNDER_REVIEW";
+        },
+
+        adaptRecords(rawRecords, rawCandidates) {
+          const pairByLeftOrRight = {};
+          rawCandidates.forEach((c) => {
+            pairByLeftOrRight[c.left_source_key] = c;
+            pairByLeftOrRight[c.right_source_key] = c;
+          });
+
+          const byKey = {};
+          rawRecords.forEach((r) => {
+            byKey[r.source_key] = r;
+          });
+
+          return rawRecords.map((r) => {
+            const isContact =
+              String(r.entity_type || "").toUpperCase() === "CONTACT";
+            const pool = isContact ? "CONTACT" : "ACCOUNT";
+            const cand = pairByLeftOrRight[r.source_key];
+            const otherKey = cand
+              ? cand.left_source_key === r.source_key
+                ? cand.right_source_key
+                : cand.left_source_key
+              : null;
+            const other = otherKey ? byKey[otherKey] : null;
+            const status = cand
+              ? this.mapStatus(
+                  cand.proposed_category,
+                  cand.review_state,
+                  cand.conflicts,
+                )
+              : "APPROVED_DUPLICATE";
+
+            return {
+              id: r.source_key,
+              canonicalId:
+                r.canonical_id ||
+                (status === "APPROVED_DUPLICATE"
+                  ? `CAN-${r.source_key}`
+                  : "Chờ duyệt Crosswalk"),
+              pool,
+              entitySubtype:
+                r.entity_type || (isContact ? "CONTACT" : "COMPANY"),
+              name: r.legal_name || r.full_name || r.name || r.source_key,
+              taxId: r.tax_code || "N/A",
+              phone: r.phone || "—",
+              email: r.email || "—",
+              company:
+                r.company_name || `Hệ thống: ${r.source_system || "CRM"}`,
+              address: r.address || "Chưa có địa chỉ",
+              effectiveDate:
+                r.affiliation_dates || `Nguồn: ${r.source_system || "FastAPI"}`,
+              source: isContact
+                ? "Contact_CRM.csv"
+                : r.source_system || "Account_ERP.csv",
+              status,
+              similarity: cand
+                ? Math.round(Number(cand.similarity_score || 0))
+                : 0,
+              duplicateWith: otherKey,
+              duplicateReason: cand
+                ? [...(cand.reasons || []), ...(cand.conflicts || [])].join(
+                    " • ",
+                  ) || cand.proposed_category
+                : "Bản ghi sạch từ FastAPI",
+              proposedCategory: cand ? cand.proposed_category : "SAME_ENTITY",
+              duplicateCandidate: other
+                ? {
+                    id: other.source_key,
+                    name:
+                      other.legal_name || other.full_name || other.source_key,
+                    taxId: other.tax_code || "N/A",
+                    phone: other.phone || "—",
+                    email: other.email || "—",
+                    company: other.company_name || other.source_system || "",
+                    address: other.address || "—",
+                    source: other.source_system || "FastAPI",
+                  }
+                : null,
+            };
+          });
+        },
+
+        adaptPairs(rawRecords, rawCandidates) {
+          const byKey = {};
+          rawRecords.forEach((r) => {
+            byKey[r.source_key] = r;
+          });
+
+          return rawCandidates.map((c, idx) => {
+            const left = byKey[c.left_source_key] || {
+              source_key: c.left_source_key,
+              legal_name: c.left_source_key,
+            };
+            const right = byKey[c.right_source_key] || {
+              source_key: c.right_source_key,
+              legal_name: c.right_source_key,
+            };
+            const isContact =
+              String(c.entity_pool || left.entity_type || "").toUpperCase() ===
+              "CONTACT";
+            const conflicts = c.conflicts || [];
+            const reasons = c.reasons || [];
+
+            return {
+              pairId: c.pair_id || `PAIR-${String(idx + 1).padStart(3, "0")}`,
+              pool: isContact ? "CONTACT" : "ACCOUNT",
+              score: Math.round(Number(c.similarity_score || 0)),
+              status: this.mapStatus(
+                c.proposed_category,
+                c.review_state,
+                conflicts,
+              ),
+              conflictFlag: conflicts.length > 0,
+              evidence:
+                [...reasons, ...conflicts.map((x) => `Xung đột: ${x}`)].join(
+                  " • ",
+                ) || `Đề xuất từ matcher: ${c.proposed_category}`,
+              recA: {
+                id: left.source_key,
+                name: left.legal_name || left.full_name || left.source_key,
+                taxId: left.tax_code || "N/A",
+                phone: left.phone || "—",
+                address: left.address || left.company_name || "—",
+                source: left.source_system || "FastAPI",
+              },
+              recB: {
+                id: right.source_key,
+                name: right.legal_name || right.full_name || right.source_key,
+                taxId: right.tax_code || "N/A",
+                phone: right.phone || "—",
+                address: right.address || right.company_name || "—",
+                source: right.source_system || "FastAPI",
+              },
+            };
+          });
+        },
+      };
+
+      function updateSourceModeUI(isLive) {
+        const badge = document.getElementById("header-mock-badge");
+        const sideText = document.getElementById("sidebar-source-text");
+        if (isLive) {
+          badge.className =
+            "px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-bold text-[11px] flex items-center gap-1.5 shrink-0";
+          badge.innerHTML =
+            '<span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span><span>LIVE API · FASTAPI</span>';
+          if (sideText) sideText.textContent = "Live FastAPI";
+        } else {
+          badge.className =
+            "px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-bold text-[11px] flex items-center gap-1.5 shrink-0";
+          badge.innerHTML =
+            '<i class="fa-solid fa-flask"></i><span>DỮ LIỆU MINH HỌA (MOCK)</span>';
+          if (sideText) sideText.textContent = "Mock Adapter";
+        }
+      }
+
+      async function tryConnectLiveApi(silentFallback = false) {
         const loadingEl = document.getElementById("global-loading-state");
         const errorEl = document.getElementById("global-error-state");
         const screens = ["overview", "customers", "pairs", "import", "specs"];
@@ -3184,51 +3399,79 @@
         errorEl.classList.add("hidden");
         loadingEl.classList.remove("hidden");
 
-        await new Promise((r) => setTimeout(r, 500));
         try {
           const [resRec, resPair] = await Promise.all([
-            fetch("/api/records"),
-            fetch("/api/candidates"),
+            fetch("/api/records", { headers: { Accept: "application/json" } }),
+            fetch("/api/candidates", {
+              headers: { Accept: "application/json" },
+            }),
           ]);
           if (!resRec.ok || !resPair.ok) {
-            throw new Error(`HTTP ${resRec.status}`);
+            throw new Error(`HTTP ${resRec.status} / ${resPair.status}`);
           }
-          const recData = await resRec.json();
-          const pairData = await resPair.json();
-          if (Array.isArray(recData) && recData.length > 0) {
-            CUSTOMERS = recData;
+          const recJson = await resRec.json();
+          const pairJson = await resPair.json();
+
+          const rawRecords = Array.isArray(recJson)
+            ? recJson
+            : recJson.records || [];
+          const rawCandidates = Array.isArray(pairJson)
+            ? pairJson
+            : pairJson.candidates || [];
+
+          if (!rawRecords.length && !rawCandidates.length) {
+            throw new Error(
+              "FastAPI phản hồi 200 OK nhưng DB đang trống (0 bản ghi).",
+            );
           }
-          if (Array.isArray(pairData) && pairData.length > 0) {
-            CANDIDATE_PAIRS = pairData;
-          }
+
+          CUSTOMERS = FastApiAdapter.adaptRecords(rawRecords, rawCandidates);
+          CANDIDATE_PAIRS = FastApiAdapter.adaptPairs(
+            rawRecords,
+            rawCandidates,
+          );
+
+          updateSourceModeUI(true);
           loadingEl.classList.add("hidden");
           switchScreen(currentScreen);
+          syncProposalsFromReviewPage();
           updateDashboardCounts();
           filterCustomerTable();
           renderCandidatePairs();
+          updatePager();
           showToast(
-            "Đã kiểm tra kết nối API Backend (/api/records & /api/candidates)!",
+            `Đã kết nối FastAPI thành công: ${CUSTOMERS.length} bản ghi & ${CANDIDATE_PAIRS.length} cặp ứng viên!`,
           );
         } catch (err) {
           loadingEl.classList.add("hidden");
+          if (silentFallback) {
+            restoreMockAdapter(true);
+            return;
+          }
           errorEl.classList.remove("hidden");
           document.getElementById("global-error-message").innerHTML =
-            `Không thể lấy dữ liệu từ API (<code>${err.message}</code>). Bạn hãy bấm nút <strong>"Dùng Mock Adapter"</strong> bên dưới để quay lại dữ liệu minh họa.`;
+            `Không lấy được dữ liệu từ FastAPI (<code>${err.message}</code>). Hãy khởi chạy <code>uvicorn main:app --reload</code> hoặc bấm <strong>"Dùng Mock Adapter"</strong> để xem dữ liệu minh họa.`;
         }
       }
 
-      function restoreMockAdapter() {
+      function restoreMockAdapter(silent = false) {
         CUSTOMERS = MockAdapter.getRecords();
         CANDIDATE_PAIRS = MockAdapter.getCandidatePairs();
+        updateSourceModeUI(false);
         document.getElementById("global-error-state").classList.add("hidden");
         document.getElementById("global-loading-state").classList.add("hidden");
+        syncProposalsFromReviewPage();
         resetFilters();
         resetPairFilters();
         updateDashboardCounts();
+        updatePager();
         switchScreen(currentScreen);
-        showToast("Đã khôi phục dữ liệu từ Mock Adapter tách biệt!");
+        if (!silent) {
+          showToast(
+            "Đã chuyển sang Mock Adapter tách biệt (Dữ liệu minh họa)!",
+          );
+        }
       }
-
       function updateDashboardCounts() {
         const totalRec = CUSTOMERS.length;
         const accRec = CUSTOMERS.filter((c) => c.pool === "ACCOUNT").length;
@@ -3716,9 +3959,12 @@
                 <span class="px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 font-mono font-extrabold text-xs text-indigo-600 dark:text-indigo-300">
                   Similarity Score: ${p.score}%
                 </span>
-                <button onclick="openCompareModal('${p.recA.id}')" class="btn-shimmer px-3.5 py-1.5 rounded-xl text-xs font-bold btn-glow">
-                  <i class="fa-solid fa-code-compare mr-1"></i> Đối chiếu & Quyết định
-                </button>
+               <button onclick="openCompareModal('${p.recA.id}')" class="btn-secondary-hover px-3 py-1.5 rounded-xl text-xs font-bold border border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+               <i class="fa-solid fa-eye mr-1"></i> Xem nhanh
+             </button>
+             <button onclick="goToStewardReviewPage('', '${p.recA.id}', '${p.recB.id}')" class="btn-shimmer px-3.5 py-1.5 rounded-xl text-xs font-bold btn-glow">
+               <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Đối chiếu Steward
+             </button>
               </div>
             </div>
 
@@ -3812,9 +4058,17 @@
           : "UI Thực tế";
       }
 
+      function applySavedTheme() {
+        const isDark = localStorage.getItem("ai13-theme") === "dark";
+        document.documentElement.classList.toggle("dark", isDark);
+        const icon = document.getElementById("icon-dark");
+        if (icon)
+          icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+      }
+
       function toggleDarkMode() {
-        document.documentElement.classList.toggle("dark");
-        const isDark = document.documentElement.classList.contains("dark");
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("ai13-theme", isDark ? "dark" : "light");
         document.getElementById("icon-dark").className = isDark
           ? "fa-solid fa-sun"
           : "fa-solid fa-moon";
@@ -4322,12 +4576,11 @@
       }
 
       window.onload = function () {
-        updateDashboardCounts();
-        setPoolFilter("ALL");
-        renderCandidatePairs();
+        applySavedTheme();
         renderTrend();
-        updatePager();
         checkRealtimeDuplicate();
+        // Mặc định gọi FastAPI trước (KAN-41), nếu chưa bật server sẽ tự động fallback sang MockAdapter có nhãn
+        tryConnectLiveApi(true);
       };
       // ==================== CẦU NỐI TÍCH HỢP VỚI DUPLICATE_REVIEW.HTML (W03) ====================
       const STEWARD_STORE_KEY = "ai13-steward-proposals-w03";
@@ -4431,7 +4684,7 @@
               <i class="fa-solid fa-arrow-up-right-from-square w-4 text-center text-amber-400"></i>
               <span>Mở Trang Steward Review</span>
             </span>
-            <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-200">W03</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/20 text-amber-200">W04</span>
           `;
           navSpecBtn.parentNode.insertBefore(linkBtn, navSpecBtn);
         }
