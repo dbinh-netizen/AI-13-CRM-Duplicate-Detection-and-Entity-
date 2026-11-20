@@ -1,3 +1,11 @@
 source_key,source_system,entity_type,legal_name,tax_code,phone,email,address
 ACC-1089,CRM_SOUTH,COMPANY,Cty TNHH Phan mem FPT,0101248141,+84908123456,contact@fpt.com.vn,"Lô E2a-7, Đường D1, KCNC, Quận 9, TP.HCM"
 ACC-2015,CRM_SOUTH,BRANCH,Chi nhánh Công ty CP Cơ khí Đại Nam - Nhà máy Bình Dương,0314892100-001,02838991122,sales@dainam-ind.vn,"KCN VSIP 1, Thuận An, Bình Dương"
+CUS014,CRM_B,COMPANY,CONG TY TNHH ANH DUONG,0312345678,0901 234 567,CONTACT@ANHDUONG.VN,"12 Nguyen Hue, Quan 1, TP.HCM"
+CUS015,CRM_B,COMPANY,Công ty TNHH Sao Việt,0011223344,0933344444,hello@saoviet.vn,"88 Trần Hưng Đạo, Đà Nẵng"
+CUS016,CRM_B,COMPANY,CTCP Minh Phát,0109876543,0987 654 321,INFO@MINHPHAT.VN,"25 Le Loi, Ha Noi"
+CUS017,CRM_B,COMPANY,Công ty TNHH Bình Minh,0405566778,0909888777,info@binhminh.vn,"09 Bạch Đằng, Đà Nẵng"
+CUS018,CRM_B,COMPANY,Công ty TNHH An Phát,0317788990,0944555666,contact@anphat.vn,"120 Cách Mạng Tháng 8, TP.HCM"
+CUS019,CRM_B,COMPANY,Công ty TNHH Gia Hưng,0316677889,,info@giahung.vn,"19 Lý Thường Kiệt, TP.HCM"
+CUS020,CRM_B,COMPANY,CT TNHH Đại Phúc,0203344556,0977 001 122,LIENHE@DAIPHUC.VN,"16 Hung Vuong, Hai Phong"
+CUS021,CRM_B,COMPANY,Công ty TNHH Phú An,0004567891,0922 333 444,INFO@PHUAN.VN,"31 Nguyen Trai, Can Tho"
