@@ -5,8 +5,12 @@ from backend.services.intake import load_all_csv_records
 from backend.services.matcher import generate_candidates
 from backend.services.resolver import verify_independent_approver
 from backend.services.exporter import export_crosswalk_csv
+from backend.api.review_routes import router as review_router
+from backend.api.canonical_routes import router as canonical_router
 
 router = APIRouter(prefix="/api", tags=["CRM Entity Resolution API"])
+router.include_router(review_router)
+router.include_router(canonical_router)
 
 @router.get("/records")
 def get_all_source_records():
