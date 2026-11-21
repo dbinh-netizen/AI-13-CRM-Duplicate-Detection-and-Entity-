@@ -1,0 +1,2858 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SongNhat CRM — Đối chiếu Cặp Nghi Trùng (Data Steward)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                "Inter",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "Roboto",
+                "sans-serif",
+              ],
+              mono: [
+                "Roboto Mono",
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "monospace",
+              ],
+            },
+            colors: {
+              brand: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e40af",
+                900: "#1e3a8a",
+                950: "#0a192f",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      html,
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        -webkit-font-smoothing: antialiased;
+        letter-spacing: -0.011em;
+      }
+
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Workspace Canvas đồng bộ index.html */
+      main {
+        background-color: #f4f7fb;
+        background-image: linear-gradient(
+          180deg,
+          rgba(37, 99, 235, 0.035) 0%,
+          rgba(244, 247, 251, 0) 240px
+        );
+      }
+      html.dark main {
+        background-color: #09101d;
+        background-image: linear-gradient(
+          180deg,
+          rgba(37, 99, 235, 0.08) 0%,
+          rgba(9, 16, 29, 0) 260px
+        );
+      }
+
+      /* Scroll progress bar */
+      #scroll-progress {
+        position: sticky;
+        top: -1.5rem;
+        left: 0;
+        height: 2.5px;
+        width: 0%;
+        background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+        border-radius: 999px;
+        z-index: 30;
+        margin-bottom: -2.5px;
+        pointer-events: none;
+        transition: width 0.08s linear;
+      }
+
+      /* Sidebar đồng bộ index.html */
+      #app-sidebar {
+        background: linear-gradient(180deg, #0a192f 0%, #0f213d 100%);
+        width: 264px;
+        transition: width 0.28s var(--ease);
+      }
+      body.sidebar-collapsed #app-sidebar {
+        width: 76px;
+      }
+      body.sidebar-collapsed #app-sidebar .sb-hide {
+        display: none !important;
+      }
+      body.sidebar-collapsed #app-sidebar .sb-brand {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      body.sidebar-collapsed #app-sidebar .nav-item {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .nav-item {
+        transition:
+          background-color 0.2s var(--ease),
+          color 0.2s var(--ease),
+          transform 0.2s var(--ease),
+          box-shadow 0.2s var(--ease);
+      }
+      .nav-item i {
+        transition: transform 0.2s var(--ease);
+      }
+      .nav-item:hover i {
+        transform: translateX(2px);
+      }
+      .nav-item.active {
+        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow: 0 6px 16px -4px rgba(37, 99, 235, 0.45);
+      }
+
+      /* Enterprise Surface Card + Cursor Spotlight */
+      .corp-card {
+        position: relative;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.85rem;
+        box-shadow:
+          0 1px 2px rgba(15, 23, 42, 0.04),
+          0 6px 16px -10px rgba(15, 23, 42, 0.06);
+        transition:
+          border-color 0.24s var(--ease),
+          box-shadow 0.24s var(--ease),
+          transform 0.24s var(--ease);
+      }
+      html.dark .corp-card {
+        background: #111c2e;
+        border-color: #1e2d45;
+        box-shadow: 0 10px 26px -14px rgba(0, 0, 0, 0.65);
+      }
+      .corp-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          360px circle at var(--mx, -200px) var(--my, -200px),
+          rgba(37, 99, 235, 0.06),
+          transparent 65%
+        );
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+      }
+      html.dark .corp-card::after {
+        background: radial-gradient(
+          360px circle at var(--mx, -200px) var(--my, -200px),
+          rgba(96, 165, 250, 0.12),
+          transparent 65%
+        );
+      }
+      .corp-card:hover::after {
+        opacity: 1;
+      }
+      .corp-card:hover {
+        border-color: #cbd5e1;
+        box-shadow:
+          0 12px 26px -12px rgba(37, 99, 235, 0.12),
+          0 2px 6px -2px rgba(15, 23, 42, 0.04);
+      }
+      html.dark .corp-card:hover {
+        border-color: #334a6e;
+      }
+
+      /* Hero Banner đồng bộ */
+      .hero-banner {
+        position: relative;
+        background:
+          radial-gradient(
+            620px 340px at var(--mx, 85%) var(--my, 18%),
+            rgba(96, 165, 250, 0.22),
+            transparent 62%
+          ),
+          linear-gradient(130deg, #0a192f 0%, #123363 52%, #1d4ed8 100%);
+        border: 1px solid rgba(147, 197, 253, 0.22);
+        border-radius: 0.95rem;
+        box-shadow: 0 18px 38px -18px rgba(10, 25, 47, 0.48);
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow:
+          0 1px 2px rgba(15, 23, 42, 0.08),
+          0 6px 14px -4px rgba(37, 99, 235, 0.36);
+        transition: all 0.2s var(--ease);
+      }
+      .btn-primary:hover {
+        background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px -6px rgba(37, 99, 235, 0.48);
+      }
+      .btn-primary:active,
+      .btn-outline:active {
+        transform: scale(0.98);
+      }
+      .btn-outline {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        transition: all 0.2s var(--ease);
+      }
+      .btn-outline:hover {
+        border-color: #60a5fa;
+        background: #eff6ff;
+        color: #1d4ed8;
+        transform: translateY(-1px);
+      }
+      html.dark .btn-outline {
+        background: #162236;
+        border-color: #2b3f5e;
+        color: #e2e8f0;
+      }
+      html.dark .btn-outline:hover {
+        border-color: #3b82f6;
+        background: rgba(37, 99, 235, 0.18);
+        color: #93c5fd;
+      }
+
+      /* Queue Item */
+      .queue-item {
+        transition: all 0.18s var(--ease);
+      }
+      .queue-item:hover:not(.active) {
+        transform: translateX(2px);
+        border-color: #93c5fd;
+        background-color: #eff6ff;
+      }
+      html.dark .queue-item:hover:not(.active) {
+        background-color: rgba(37, 99, 235, 0.14);
+        border-color: #3b82f6;
+      }
+      .queue-item.active {
+        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 8px 18px -6px rgba(37, 99, 235, 0.55);
+      }
+
+      /* Decision Radio Cards */
+      .decision-card {
+        transition: all 0.2s var(--ease);
+      }
+      .decision-card:hover {
+        transform: translateY(-1.5px);
+        border-color: #60a5fa;
+      }
+      .decision-card:has(input:checked) {
+        border-color: #2563eb;
+        box-shadow:
+          0 0 0 3px rgba(37, 99, 235, 0.14),
+          0 8px 20px -10px rgba(37, 99, 235, 0.3);
+        background: #eff6ff;
+      }
+      html.dark .decision-card:has(input:checked) {
+        background: rgba(37, 99, 235, 0.18);
+        border-color: #60a5fa;
+      }
+
+      /* Animations */
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-pair-enter {
+        animation: fadeSlideUp 0.28s var(--ease);
+      }
+      @keyframes pulseRing {
+        0% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+        }
+        70% {
+          box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
+      .live-dot {
+        animation: pulseRing 2s infinite;
+      }
+
+      /* Collapsed Sidebar Tooltip */
+      #nav-tooltip {
+        position: fixed;
+        z-index: 70;
+        background: #0a192f;
+        color: #ffffff;
+        border: 1px solid rgba(96, 165, 250, 0.4);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.38rem 0.7rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.45);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.14s ease;
+      }
+      #nav-tooltip.visible {
+        opacity: 1;
+      }
+
+      /* Command Palette */
+      #cmd-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        background: rgba(10, 25, 47, 0.58);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 11vh;
+      }
+      #cmd-overlay.open {
+        display: flex;
+        animation: fadeSlideUp 0.18s var(--ease);
+      }
+      .cmd-item {
+        border-left: 3px solid transparent;
+        transition: all 0.14s ease;
+      }
+      .cmd-item:hover,
+      .cmd-item.active {
+        background: #eff6ff;
+        border-left-color: #2563eb;
+      }
+      html.dark .cmd-item:hover,
+      html.dark .cmd-item.active {
+        background: rgba(37, 99, 235, 0.18);
+        border-left-color: #60a5fa;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      html.dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+      }
+    </style>
+  </head>
+
+  <body
+    class="h-full font-sans text-slate-800 dark:text-slate-100 antialiased flex overflow-hidden bg-slate-100 dark:bg-slate-950"
+  >
+    <!-- ==================== 1. LEFT SIDEBAR (ĐỒNG BỘ INDEX.HTML) ==================== -->
+    <aside
+      id="app-sidebar"
+      class="text-slate-300 flex flex-col shrink-0 border-r border-slate-800/80 select-none z-20"
+    >
+      <div
+        class="sb-brand h-16 px-5 flex items-center gap-3 border-b border-white/10"
+      >
+        <div
+          class="w-9 h-9 rounded-xl btn-primary flex items-center justify-center text-white shrink-0"
+        >
+          <i class="fa-solid fa-layer-group text-sm"></i>
+        </div>
+        <div class="sb-hide overflow-hidden">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-white text-sm tracking-tight"
+              >SongNhat CRM</span
+            >
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 border border-brand-400/30 font-semibold"
+              >MDM</span
+            >
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">
+            Identity Resolution Platform
+          </p>
+        </div>
+      </div>
+
+      <nav
+        class="px-3 py-4 flex-1 overflow-y-auto space-y-1"
+        aria-label="Điều hướng"
+      >
+        <p
+          class="sb-hide px-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2"
+        >
+          Không gian làm việc
+        </p>
+
+        <a
+          data-dashboard-link
+          href="index.html"
+          data-tip="Quay lại Dashboard Tổng quan"
+          class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] font-medium text-slate-300 hover:bg-brand-500/15 hover:text-white"
+        >
+          <span class="flex items-center gap-3">
+            <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+            <span class="sb-hide">Tổng quan &amp; Danh sách</span>
+          </span>
+          <i
+            class="sb-hide fa-solid fa-arrow-left text-[10px] text-slate-400"
+          ></i>
+        </a>
+
+        <a
+          data-review-link
+          href="duplicate_review.html"
+          aria-current="page"
+          data-tip="Trang Đối chiếu Steward"
+          class="nav-item active w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] font-medium"
+        >
+          <span class="flex items-center gap-3">
+            <i class="fa-solid fa-code-compare w-4 text-center"></i>
+            <span class="sb-hide">Trang Steward Review</span>
+          </span>
+          <span
+            class="sb-hide text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/20"
+            >Steward</span
+          >
+        </a>
+
+        <!-- Tiến độ phiên làm việc -->
+        <div class="sb-hide pt-5 pb-1">
+          <p
+            class="px-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 mb-2"
+          >
+            Tiến độ rà soát
+          </p>
+          <div
+            class="p-3.5 rounded-xl bg-white/[0.04] border border-white/10 space-y-2.5 text-xs"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Đã ghi đề xuất</span>
+              <strong
+                id="sidebar-saved-progress"
+                class="font-mono tnum text-emerald-400"
+                >0 / 0</strong
+              >
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                id="sidebar-progress-bar"
+                class="h-full bg-gradient-to-r from-brand-400 to-sky-300 rounded-full transition-all duration-500"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Mọi đề xuất được lưu và đồng bộ ngay về Dashboard để Approver xem
+              xét.
+            </p>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Hộp cam kết kiểm duyệt độc lập -->
+      <div
+        class="sb-hide m-3 p-3.5 rounded-xl bg-white/[0.04] border border-white/10 text-[11px] space-y-2"
+      >
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2 text-brand-300 font-semibold">
+            <span
+              id="sidebar-status-dot"
+              class="w-2 h-2 rounded-full bg-brand-400"
+            ></span>
+            <span id="sidebar-source-text">Dữ liệu Demo</span>
+          </span>
+          <span
+            id="sidebar-api-tag"
+            class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-200"
+            >LOCAL</span
+          >
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          Phiên làm việc <strong>Data Steward</strong> chỉ ghi nhận đề xuất,
+          không tự kích hoạt Crosswalk.
+        </p>
+      </div>
+    </aside>
+
+    <!-- ==================== 2. MAIN WORKSPACE ==================== -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- TOP HEADER BAR -->
+      <header
+        class="h-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 flex items-center justify-between shrink-0 z-10 gap-3"
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onclick="toggleSidebar()"
+            title="Thu gọn / Mở rộng menu"
+            class="btn-outline w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          >
+            <i class="fa-solid fa-bars-staggered text-xs"></i>
+          </button>
+
+          <div class="flex items-center gap-2 min-w-0">
+            <span
+              id="badge-data"
+              class="px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 font-semibold text-[11px] flex items-center gap-1.5 shrink-0"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+              <span>Dữ liệu Demo</span>
+            </span>
+            <i
+              class="fa-solid fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600 shrink-0"
+            ></i>
+            <h1
+              class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+            >
+              Đối chiếu Cặp Nghi Trùng &amp; Đề xuất Phân giải
+            </h1>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Command Palette Trigger -->
+          <button
+            type="button"
+            onclick="openCommandPalette()"
+            class="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 hover:border-brand-400 hover:bg-brand-50/60 dark:hover:bg-brand-900/20 text-xs text-slate-500 dark:text-slate-300 transition-all"
+          >
+            <i
+              class="fa-solid fa-magnifying-glass text-brand-600 text-[11px]"
+            ></i>
+            <span>Tìm nhanh cặp...</span>
+            <span
+              class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500"
+              >Ctrl K</span
+            >
+          </button>
+
+          <span
+            id="badge-pending"
+            class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            Chờ Approver duyệt
+          </span>
+
+          <button
+            type="button"
+            id="btn-sync-api"
+            class="btn-outline px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
+            title="Đồng bộ lại dữ liệu từ FastAPI"
+          >
+            <i
+              id="icon-sync"
+              class="fa-solid fa-arrows-rotate text-brand-600 dark:text-brand-400"
+            ></i>
+            <span class="hidden sm:inline">Đồng bộ API</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-dark"
+            class="btn-outline w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-brand-300"
+            title="Chuyển giao diện Sáng / Tối"
+          >
+            <i id="icon-dark" class="fa-solid fa-moon text-xs"></i>
+          </button>
+
+          <div
+            class="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800"
+          >
+            <div
+              class="w-8 h-8 rounded-lg btn-primary flex items-center justify-center text-white text-xs font-bold"
+            >
+              DS
+            </div>
+            <div class="text-left leading-tight">
+              <div class="text-xs font-semibold text-slate-900 dark:text-white">
+                Data Steward
+              </div>
+              <div class="text-[10px] text-slate-500">Người đề xuất</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- MAIN SCROLLABLE AREA -->
+      <main id="main-scroll" class="flex-1 overflow-y-auto p-6">
+        <div id="scroll-progress"></div>
+
+        <div class="max-w-[1400px] mx-auto space-y-5">
+          <!-- HERO BANNER -->
+          <section class="hero-banner p-6 text-white overflow-hidden">
+            <div
+              class="flex flex-col lg:flex-row lg:items-center justify-between gap-5"
+            >
+              <div class="space-y-2.5 max-w-3xl">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-[11px] font-medium text-brand-100"
+                  >
+                    <i class="fa-solid fa-scale-balanced text-[10px]"></i>
+                    Đối chiếu Bằng chứng Song song
+                  </span>
+                  <span
+                    id="hero-pool-pill"
+                    class="px-2.5 py-0.5 rounded-full bg-brand-400/20 border border-brand-300/35 text-brand-100 text-[11px] font-mono font-semibold"
+                  >
+                    ACCOUNT POOL
+                  </span>
+                </div>
+
+                <h2
+                  id="pair-heading"
+                  class="text-xl lg:text-2xl font-bold tracking-tight text-white"
+                >
+                  Đang mở cặp nghi trùng
+                </h2>
+                <p
+                  id="pair-summary"
+                  class="text-[13px] text-brand-100/90 leading-relaxed"
+                ></p>
+
+                <!-- Quick Prev/Next Pair Navigation -->
+                <div class="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    id="btn-prev-pair"
+                    class="px-3 py-1.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  >
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i> Cặp
+                    trước
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-next-pair"
+                    class="px-3 py-1.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 text-xs font-medium flex items-center gap-1.5 transition-all"
+                  >
+                    Cặp tiếp
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                  </button>
+                  <a
+                    data-dashboard-link
+                    href="index.html"
+                    class="px-3 py-1.5 rounded-lg bg-white text-brand-950 hover:bg-brand-50 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Về
+                    Dashboard
+                  </a>
+                </div>
+              </div>
+
+              <!-- Hero Metrics -->
+              <div class="flex flex-wrap items-stretch gap-2.5 shrink-0">
+                <div
+                  class="px-4 py-3 rounded-xl bg-brand-950/50 border border-white/15 backdrop-blur-md min-w-[140px]"
+                >
+                  <div
+                    class="text-[10px] uppercase tracking-wider text-brand-200 font-semibold"
+                  >
+                    Điểm tương đồng
+                  </div>
+                  <div class="flex items-baseline gap-1 mt-1">
+                    <span
+                      id="pair-score"
+                      class="font-mono tnum text-2xl font-bold text-white"
+                      >—</span
+                    >
+                    <span class="text-[11px] font-mono text-brand-200"
+                      >/ 100</span
+                    >
+                  </div>
+                  <div
+                    class="w-full h-1.5 rounded-full bg-white/15 mt-2 overflow-hidden"
+                  >
+                    <div
+                      id="pair-score-bar"
+                      class="h-full bg-gradient-to-r from-brand-300 to-sky-300 rounded-full transition-all duration-500"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                </div>
+
+                <div
+                  class="px-4 py-3 rounded-xl bg-brand-950/50 border border-white/15 backdrop-blur-md flex flex-col justify-between min-w-[155px]"
+                >
+                  <div
+                    class="text-[10px] uppercase tracking-wider text-brand-200 font-semibold"
+                  >
+                    Gợi ý thuật toán
+                  </div>
+                  <div
+                    id="pair-category"
+                    class="font-mono text-xs font-semibold text-white mt-1.5"
+                  >
+                    —
+                  </div>
+                  <div
+                    class="text-[10px] text-brand-200/80 mt-1 pt-1 border-t border-white/10"
+                  >
+                    Trạng thái:
+                    <strong id="pair-state" class="font-mono text-sky-200"
+                      >NEW</strong
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div
+            id="missing-banner"
+            class="hidden corp-card p-3.5 border-l-4 border-l-amber-500 text-xs text-slate-700 dark:text-slate-200 flex items-center gap-2.5"
+          ></div>
+
+          <!-- 2-COLUMN WORKSPACE: QUEUE + DETAIL -->
+          <div
+            class="grid grid-cols-1 xl:grid-cols-[296px_minmax(0,1fr)] gap-5 items-start"
+          >
+            <!-- LEFT: PAIR QUEUE -->
+            <section
+              class="corp-card p-3.5 xl:sticky xl:top-2 space-y-3"
+              aria-label="Hàng đợi cặp nghi trùng"
+            >
+              <div class="px-1 flex items-center justify-between">
+                <h3
+                  class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5"
+                >
+                  <i class="fa-solid fa-list-check text-brand-600"></i>
+                  Hàng đợi rà soát
+                </h3>
+                <span
+                  id="queue-count"
+                  class="font-mono tnum text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300"
+                ></span>
+              </div>
+
+              <div class="relative">
+                <i
+                  class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"
+                ></i>
+                <input
+                  id="queue-search"
+                  type="text"
+                  placeholder="Lọc mã cặp, tên, MST..."
+                  class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20"
+                />
+              </div>
+
+              <div
+                class="grid grid-cols-3 gap-1 p-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[11px]"
+              >
+                <button
+                  type="button"
+                  data-qpool="ALL"
+                  class="qpool-btn py-1 rounded-md font-semibold btn-primary"
+                >
+                  Tất cả
+                </button>
+                <button
+                  type="button"
+                  data-qpool="ACCOUNT"
+                  class="qpool-btn py-1 rounded-md font-medium text-slate-600 dark:text-slate-300"
+                >
+                  Account
+                </button>
+                <button
+                  type="button"
+                  data-qpool="CONTACT"
+                  class="qpool-btn py-1 rounded-md font-medium text-slate-600 dark:text-slate-300"
+                >
+                  Contact
+                </button>
+              </div>
+
+              <div
+                id="pair-queue"
+                class="space-y-1.5 max-h-[60vh] overflow-y-auto pr-0.5"
+              ></div>
+            </section>
+
+            <!-- RIGHT: SIDE-BY-SIDE COMPARISON + PROPOSAL FORM -->
+            <div id="detail-panel" class="space-y-5 min-w-0 animate-pair-enter">
+              <!-- Record Headers -->
+              <section
+                id="record-heads"
+                class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+              ></section>
+
+              <!-- Side-by-Side Fields -->
+              <section class="corp-card p-5 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3
+                      class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <i class="fa-solid fa-table-columns text-brand-600"></i>
+                      Đối chiếu từng trường (Side-by-Side)
+                    </h3>
+                    <p
+                      class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                    >
+                      Hiển thị song song giá trị gốc và giá trị đã chuẩn hóa
+                      tiếng Việt, SĐT và MST.
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2">
+                    <!-- Diff-Only Filter -->
+                    <label
+                      class="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 text-xs font-medium text-slate-700 dark:text-slate-200 cursor-pointer select-none"
+                    >
+                      <input
+                        id="chk-diff-only"
+                        type="checkbox"
+                        class="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                      />
+                      <span>Chỉ hiện trường lệch / xung đột</span>
+                    </label>
+
+                    <div
+                      class="hidden sm:flex items-center gap-1.5 text-[10px] font-medium"
+                    >
+                      <span
+                        class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                        >Khớp</span
+                      >
+                      <span
+                        class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                        >Một phần</span
+                      >
+                      <span
+                        class="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                        >Xung đột</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div id="field-compare" class="space-y-3"></div>
+              </section>
+
+              <!-- Evidence Panels -->
+              <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="corp-card p-5 space-y-3">
+                  <h3
+                    class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                  >
+                    <span
+                      class="w-2 h-2 rounded-full bg-emerald-500 inline-block"
+                    ></span>
+                    Bằng chứng ủng hộ trùng khớp
+                  </h3>
+                  <div id="evidence-positive" class="space-y-2.5"></div>
+                </div>
+                <div class="corp-card p-5 space-y-3">
+                  <h3
+                    class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                  >
+                    <span
+                      class="w-2 h-2 rounded-full bg-rose-500 inline-block"
+                    ></span>
+                    Bằng chứng khác biệt / Xung đột
+                  </h3>
+                  <div id="evidence-negative" class="space-y-2.5"></div>
+                </div>
+              </section>
+
+              <!-- Data Steward Proposal Form -->
+              <section class="corp-card p-5 space-y-4">
+                <form id="proposal-form" class="space-y-4" novalidate>
+                  <div
+                    class="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800"
+                  >
+                    <div>
+                      <h3
+                        class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                      >
+                        <i class="fa-solid fa-pen-to-square text-brand-600"></i>
+                        Ghi nhận Đề xuất Phân giải (Data Steward)
+                      </h3>
+                      <p
+                        class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl"
+                      >
+                        Chọn 1 trong 4 danh mục quyết định và nhập lý do (tối
+                        thiểu 15 ký tự). Đề xuất sẽ tự đồng bộ về Dashboard ở
+                        trạng thái chờ Approver phê duyệt độc lập.
+                      </p>
+                    </div>
+                    <span
+                      class="text-[11px] font-mono font-medium px-2.5 py-1 rounded-md bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800"
+                      >ReviewDecisionRequest</span
+                    >
+                  </div>
+
+                  <fieldset>
+                    <legend
+                      class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2"
+                    >
+                      Danh mục quyết định (decision_category)
+                    </legend>
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-2 gap-2.5"
+                      id="decision-grid"
+                    >
+                      <label
+                        class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 flex gap-3 bg-white dark:bg-slate-900/50"
+                      >
+                        <input
+                          class="mt-1 text-brand-600 focus:ring-brand-500"
+                          type="radio"
+                          name="decision_category"
+                          value="same"
+                        />
+                        <span>
+                          <span
+                            class="block text-xs font-semibold text-slate-900 dark:text-white"
+                            >same · Cùng một thực thể</span
+                          >
+                          <span class="block text-[11px] text-slate-500 mt-0.5"
+                            >Đề xuất dùng chung định danh chuẩn. Chưa kích hoạt
+                            Crosswalk.</span
+                          >
+                        </span>
+                      </label>
+
+                      <label
+                        class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 flex gap-3 bg-white dark:bg-slate-900/50"
+                      >
+                        <input
+                          class="mt-1 text-brand-600 focus:ring-brand-500"
+                          type="radio"
+                          name="decision_category"
+                          value="related"
+                        />
+                        <span>
+                          <span
+                            class="block text-xs font-semibold text-slate-900 dark:text-white"
+                            >related · Liên quan (Mẹ – Chi nhánh)</span
+                          >
+                          <span class="block text-[11px] text-slate-500 mt-0.5"
+                            >Công ty mẹ, chi nhánh hoặc nhà máy. Không gộp hồ
+                            sơ.</span
+                          >
+                        </span>
+                      </label>
+
+                      <label
+                        class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 flex gap-3 bg-white dark:bg-slate-900/50"
+                      >
+                        <input
+                          class="mt-1 text-brand-600 focus:ring-brand-500"
+                          type="radio"
+                          name="decision_category"
+                          value="distinct"
+                        />
+                        <span>
+                          <span
+                            class="block text-xs font-semibold text-slate-900 dark:text-white"
+                            >distinct · Khác biệt hoàn toàn</span
+                          >
+                          <span class="block text-[11px] text-slate-500 mt-0.5"
+                            >Bác bỏ nghi trùng. Hai hồ sơ là hai thực thể độc
+                            lập.</span
+                          >
+                        </span>
+                      </label>
+
+                      <label
+                        class="decision-card cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 flex gap-3 bg-white dark:bg-slate-900/50"
+                      >
+                        <input
+                          class="mt-1 text-brand-600 focus:ring-brand-500"
+                          type="radio"
+                          name="decision_category"
+                          value="insufficient"
+                        />
+                        <span>
+                          <span
+                            class="block text-xs font-semibold text-slate-900 dark:text-white"
+                            >insufficient · Chưa đủ bằng chứng</span
+                          >
+                          <span class="block text-[11px] text-slate-500 mt-0.5"
+                            >Tạm hoãn (Hold) chờ bổ sung thông tin xác
+                            minh.</span
+                          >
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <label class="block text-xs font-medium space-y-1">
+                      <span class="text-slate-600 dark:text-slate-300"
+                        >Mã bản ghi trái</span
+                      >
+                      <input
+                        id="field-left"
+                        name="left_source_key"
+                        readonly
+                        class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 font-mono text-xs text-brand-700 dark:text-brand-400 font-semibold"
+                      />
+                    </label>
+                    <label class="block text-xs font-medium space-y-1">
+                      <span class="text-slate-600 dark:text-slate-300"
+                        >Mã bản ghi phải</span
+                      >
+                      <input
+                        id="field-right"
+                        name="right_source_key"
+                        readonly
+                        class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 font-mono text-xs text-brand-700 dark:text-brand-400 font-semibold"
+                      />
+                    </label>
+                    <label class="block text-xs font-medium space-y-1">
+                      <span class="text-slate-600 dark:text-slate-300"
+                        >Người đề xuất (steward_user)</span
+                      >
+                      <input
+                        id="field-steward"
+                        name="steward_user"
+                        required
+                        value="data.steward"
+                        autocomplete="username"
+                        class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-medium focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20"
+                      />
+                    </label>
+                  </div>
+
+                  <!-- Quick Reason Templates -->
+                  <div class="space-y-1.5">
+                    <div
+                      class="flex flex-wrap items-center justify-between gap-2 text-xs"
+                    >
+                      <span
+                        class="font-medium text-slate-700 dark:text-slate-300"
+                        >Lý do đề xuất (reason)</span
+                      >
+                      <span
+                        id="reason-count"
+                        class="font-mono text-[11px] text-slate-400"
+                        >0 / 15 ký tự tối thiểu</span
+                      >
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[11px] text-slate-400">Mẫu nhanh:</span>
+                      <button
+                        type="button"
+                        onclick="applyReasonTemplate('same')"
+                        class="btn-outline px-2.5 py-1 rounded-md text-[11px] font-medium"
+                      >
+                        Trùng MST &amp; SĐT (đổi địa chỉ)
+                      </button>
+                      <button
+                        type="button"
+                        onclick="applyReasonTemplate('related')"
+                        class="btn-outline px-2.5 py-1 rounded-md text-[11px] font-medium"
+                      >
+                        Công ty Mẹ – Chi nhánh (-001)
+                      </button>
+                      <button
+                        type="button"
+                        onclick="applyReasonTemplate('insufficient')"
+                        class="btn-outline px-2.5 py-1 rounded-md text-[11px] font-medium"
+                      >
+                        Xung đột MST, tạm hoãn xác minh
+                      </button>
+                      <button
+                        type="button"
+                        onclick="applyReasonTemplate('distinct')"
+                        class="btn-outline px-2.5 py-1 rounded-md text-[11px] font-medium"
+                      >
+                        Khác thực thể, bác bỏ nghi trùng
+                      </button>
+                    </div>
+                    <textarea
+                      id="field-reason"
+                      name="reason"
+                      required
+                      minlength="15"
+                      rows="3"
+                      placeholder="Nhập bằng chứng đối chiếu cụ thể để Approver kiểm tra và phê duyệt..."
+                      class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 text-xs leading-relaxed focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20"
+                    ></textarea>
+                  </div>
+
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-3 pt-1"
+                  >
+                    <p
+                      id="form-error"
+                      class="text-xs font-medium text-rose-600 min-h-[1rem]"
+                      role="alert"
+                    ></p>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        id="btn-clear"
+                        class="btn-outline px-3.5 py-2 rounded-lg text-xs font-medium"
+                      >
+                        Gỡ đề xuất
+                      </button>
+                      <button
+                        type="submit"
+                        class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5"
+                      >
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Ghi nhận đề xuất</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <!-- Proposal Result JSON -->
+                <div
+                  id="proposal-result"
+                  class="hidden mt-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/30 p-4 space-y-2 animate-pair-enter"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <p
+                      class="text-xs font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5"
+                    >
+                      <i class="fa-solid fa-circle-check"></i>
+                      Đã lưu đề xuất &amp; đồng bộ về Dashboard (Crosswalk chưa
+                      kích hoạt).
+                    </p>
+                    <span
+                      class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300"
+                      >PENDING</span
+                    >
+                  </div>
+                  <p
+                    class="text-[11px] text-emerald-900/80 dark:text-emerald-200/80"
+                  >
+                    Payload chuẩn
+                    <span class="font-mono font-semibold"
+                      >ReviewDecisionRequest</span
+                    >
+                    — <span class="font-mono">approver_user</span> để trống chờ
+                    phê duyệt độc lập.
+                  </p>
+                  <pre
+                    id="proposal-json"
+                    class="p-3 rounded-lg bg-white/80 dark:bg-slate-950/70 border border-emerald-200/70 dark:border-emerald-900 text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-all text-slate-800 dark:text-slate-100"
+                  ></pre>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- COLLAPSED SIDEBAR TOOLTIP -->
+    <div id="nav-tooltip"></div>
+
+    <!-- COMMAND PALETTE (CTRL + K) -->
+    <div
+      id="cmd-overlay"
+      onclick="if (event.target === this) closeCommandPalette();"
+    >
+      <div
+        class="w-full max-w-xl mx-4 bg-white dark:bg-slate-900 border border-brand-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div
+          class="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 dark:border-slate-800"
+        >
+          <i class="fa-solid fa-magnifying-glass text-brand-600 text-sm"></i>
+          <input
+            id="cmd-input"
+            type="text"
+            placeholder="Tìm mã cặp (PAIR-001), tên công ty, MST hoặc quay về Dashboard..."
+            class="flex-1 bg-transparent border-none outline-none text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
+          />
+          <span
+            class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700"
+            >ESC</span
+          >
+        </div>
+        <div
+          id="cmd-results"
+          class="max-h-80 overflow-y-auto py-1.5 divide-y divide-slate-50 dark:divide-slate-800/50"
+        ></div>
+        <div
+          class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500"
+        >
+          <span>Dùng ↑ ↓ di chuyển • Enter để mở</span>
+          <span class="font-medium text-brand-700 dark:text-brand-400"
+            >SongNhat Quick Search</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div
+      id="toast"
+      role="status"
+      aria-live="polite"
+      class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 dark:bg-slate-800 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs flex items-center gap-2.5 max-w-md"
+    >
+      <i class="fa-solid fa-circle-check text-emerald-400 text-sm shrink-0"></i>
+      <span id="toast-text" class="leading-snug"></span>
+    </div>
+
+    <script>
+      const DECISIONS = ["same", "related", "distinct", "insufficient"];
+      const STORE_KEY = "ai13-steward-proposals-w03";
+
+      const RAW_RECORDS = {
+        "ACC-ERP-1042": rec({
+          source_key: "ACC-ERP-1042",
+          source_system: "ERP",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty Cổ phần Cơ khí Chính xác Đại Nam",
+          tax_code: "0314892100",
+          phone: "02838112233",
+          email: "sales@dainam-mech.vn",
+          address: "Lô B2, KCN Tân Bình, Quận Tân Phú, TP.HCM",
+          source_file: "Account_ERP.csv",
+        }),
+        "ACC-SRV-2089": rec({
+          source_key: "ACC-SRV-2089",
+          source_system: "SERVICE",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "CTCP Co khi Chinh xac Dai Nam",
+          tax_code: "0314892100",
+          phone: "+842838112233",
+          email: "info@dainam-mech.vn",
+          address: "142 Cộng Hòa, Phường 4, Quận Tân Bình, TP.HCM",
+          source_file: "Account_Service.csv",
+        }),
+        "ACC-ERP-1055": rec({
+          source_key: "ACC-ERP-1055",
+          source_system: "ERP",
+          entity_type: "BRANCH",
+          entity_pool: "ACCOUNT",
+          legal_name:
+            "Công ty CP Cơ khí Đại Nam — Chi nhánh Nhà máy Bình Dương",
+          tax_code: "0314892100-001",
+          phone: "02838112233",
+          email: "plant.bd@dainam-mech.vn",
+          address: "Đường số 6, KCN VSIP 1, TP. Thuận An, Bình Dương",
+          source_file: "Account_ERP.csv",
+        }),
+        "ACC-ERP-1074": rec({
+          source_key: "ACC-ERP-1074",
+          source_system: "ERP",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Thiết bị Thủy lực Á Châu",
+          tax_code: "0309887766",
+          phone: "02839998888",
+          email: "contact@achau-hydraulics.vn",
+          address: "KCN Hiệp Phước, Huyện Nhà Bè, TP.HCM",
+          source_file: "Account_ERP.csv",
+        }),
+        "ACC-SRV-2099": rec({
+          source_key: "ACC-SRV-2099",
+          source_system: "SERVICE",
+          entity_type: "SITE",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Thiết bị Thủy lực Á Châu (Xưởng Dịch vụ)",
+          tax_code: "3702554411",
+          phone: "02839998888",
+          email: "service@achau-hydraulics.vn",
+          address: "KCN Sóng Thần 2, TP. Dĩ An, Bình Dương",
+          source_file: "Account_Service.csv",
+        }),
+        "CON-CRM-3012": rec({
+          source_key: "CON-CRM-3012",
+          source_system: "CRM",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyễn Minh Tuấn",
+          phone: "0908123456",
+          email: "tuan.nm@dainam-mech.vn",
+          company_name: "CTCP Cơ khí Chính xác Đại Nam",
+          address: "Quận Tân Phú, TP.HCM",
+          affiliation_dates: "03/2024 – Nay",
+          source_file: "Contact_CRM.csv",
+        }),
+        "CON-CRM-3088": rec({
+          source_key: "CON-CRM-3088",
+          source_system: "CRM",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyen Minh Tuan",
+          phone: "+84 908 123 456",
+          email: "tuan.nguyen@dainam-mech.vn",
+          company_name: "CTCP Co khi Chinh xac Dai Nam",
+          address: "KCN Tân Bình, TP.HCM",
+          affiliation_dates: "03/2024 – Nay",
+          source_file: "Contact_CRM.csv",
+        }),
+        "ACC-1042": rec({
+          source_key: "ACC-1042",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty TNHH Phần mềm FPT",
+          tax_code: "0101248141",
+          phone: "0908123456",
+          email: "contact@fpt.com.vn",
+          address: "Khu Công nghệ cao, TP. Thủ Đức, TP.HCM",
+          source_file: "accounts_source_a.csv",
+        }),
+        "ACC-1089": rec({
+          source_key: "ACC-1089",
+          source_system: "CRM_SOUTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Cty TNHH Phan mem FPT",
+          tax_code: "0101248141",
+          phone: "+84908123456",
+          email: "contact@fpt.com.vn",
+          address: "Lô E2a-7, Đường D1, KCNC, Quận 9, TP.HCM",
+          source_file: "accounts_source_b.csv",
+        }),
+        "ACC-2010": rec({
+          source_key: "ACC-2010",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty CP Cơ khí Công nghiệp Đại Nam",
+          tax_code: "0314892100",
+          phone: "02838991122",
+          email: "sales@dainam-ind.vn",
+          address: "Quận 12, TP.HCM",
+          source_file: "accounts_source_a.csv",
+        }),
+        "ACC-2015": rec({
+          source_key: "ACC-2015",
+          source_system: "CRM_SOUTH",
+          entity_type: "BRANCH",
+          entity_pool: "ACCOUNT",
+          legal_name:
+            "Chi nhánh Công ty CP Cơ khí Đại Nam - Nhà máy Bình Dương",
+          tax_code: "0314892100-001",
+          phone: "02838991122",
+          email: "sales@dainam-ind.vn",
+          address: "KCN VSIP 1, Thuận An, Bình Dương",
+          source_file: "accounts_source_b.csv",
+        }),
+        "PER-3011": rec({
+          source_key: "PER-3011",
+          source_system: "WEB_LEAD",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyễn Minh Tuấn",
+          phone: "0908123456",
+          email: "tuan.nm@fpt.com.vn",
+          company_name: "FPT Software HCM",
+          affiliation_dates: "2023-2026",
+          source_file: "contacts_source.csv",
+        }),
+        "PER-3088": rec({
+          source_key: "PER-3088",
+          source_system: "ZALO_LEAD",
+          entity_type: "CONTACT",
+          entity_pool: "CONTACT",
+          full_name: "Nguyen Minh Tuan",
+          phone: "+84908123456",
+          email: "tuan.nm@fpt.com.vn",
+          company_name: "Công ty TNHH Phần mềm FPT",
+          affiliation_dates: "2023-2026",
+          source_file: "contacts_source.csv",
+        }),
+        "ACC-3001": rec({
+          source_key: "ACC-3001",
+          source_system: "ERP_NORTH",
+          entity_type: "COMPANY",
+          entity_pool: "ACCOUNT",
+          legal_name: "Công ty Cổ phần VNG",
+          tax_code: "0303490096",
+          phone: "02839623888",
+          email: "info@vng.com.vn",
+          address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
+          source_file: "accounts_source_a.csv",
+        }),
+      };
+
+      function rec(row) {
+        return enrich({
+          legal_name: "",
+          full_name: "",
+          tax_code: "",
+          phone: "",
+          email: "",
+          address: "",
+          company_name: "",
+          affiliation_dates: "",
+          ...row,
+        });
+      }
+
+      function removeAccents(text) {
+        if (!text) return "";
+        return String(text)
+          .trim()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{M}/gu, "")
+          .replace(/đ/g, "d");
+      }
+
+      function normalizePhone(phone) {
+        const digits = String(phone || "").replace(/[^\d+]/g, "");
+        return digits.replace(/^\+?84/, "0");
+      }
+
+      function parseTax(taxCode) {
+        const raw = String(taxCode || "").trim();
+        const parts = raw.split("-");
+        return { root: parts[0] || "", branch: parts[1] || "" };
+      }
+
+      function enrich(row) {
+        const name = row.legal_name || row.full_name || "";
+        const tax = parseTax(row.tax_code);
+        return {
+          ...row,
+          norm_name_accent: String(name).trim().toLowerCase(),
+          norm_name_no_accent: removeAccents(name),
+          norm_phone: normalizePhone(row.phone),
+          norm_email: String(row.email || "")
+            .trim()
+            .toLowerCase(),
+          tax_root: tax.root,
+          tax_branch: tax.branch,
+        };
+      }
+
+      function pair(spec) {
+        return {
+          review_state: "NEW",
+          origin: "mock",
+          aliases: [],
+          ...spec,
+          id: spec.pair_id,
+          left: RAW_RECORDS[spec.left_source_key],
+          right: RAW_RECORDS[spec.right_source_key],
+        };
+      }
+
+      function ev(polarity, title, detail, source) {
+        return { polarity, title, detail, source };
+      }
+
+      let pairs = [
+        pair({
+          pair_id: "PAIR-001",
+          aliases: ["PAIR-ACC-01", "ACC-ERP-1042", "ACC-SRV-2089"],
+          left_source_key: "ACC-ERP-1042",
+          right_source_key: "ACC-SRV-2089",
+          entity_pool: "ACCOUNT",
+          similarity_score: 94,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev(
+              "positive",
+              "Trùng mã số thuế",
+              "Cả hai bản ghi cùng mang MST 0314892100 và không có hậu tố chi nhánh.",
+              "tax_code · Account_ERP.csv & Account_Service.csv",
+            ),
+            ev(
+              "positive",
+              "SĐT trùng khớp sau chuẩn hóa",
+              "02838112233 và +842838112233 chuẩn hóa cùng về 02838112233.",
+              "normalizer.normalize_phone_vn",
+            ),
+            ev(
+              "positive",
+              "Tên pháp lý cùng thực thể",
+              "Bản không dấu 'CTCP Co khi Chinh xac Dai Nam' khớp hoàn toàn với tên pháp lý trên ERP.",
+              "norm_name_no_accent · RapidFuzz matcher",
+            ),
+            ev(
+              "negative",
+              "Email giao dịch khác nhau",
+              "sales@dainam-mech.vn và info@dainam-mech.vn là hai hộp thư cùng tên miền.",
+              "email · norm_email",
+            ),
+            ev(
+              "negative",
+              "Địa chỉ khác thời điểm cập nhật",
+              "ERP ghi KCN Tân Bình (mới), Service ghi 142 Cộng Hòa (địa chỉ cũ).",
+              "address · Account_Service.csv",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-002",
+          aliases: ["PAIR-ACC-02", "ACC-ERP-1055"],
+          left_source_key: "ACC-ERP-1055",
+          right_source_key: "ACC-ERP-1042",
+          entity_pool: "ACCOUNT",
+          similarity_score: 82,
+          proposed_category: "RELATED_BUT_DISTINCT",
+          suggested_decision: "related",
+          evidence: [
+            ev(
+              "positive",
+              "Cùng MST gốc",
+              "tax_root 0314892100 xuất hiện ở cả trụ sở chính và nhà máy.",
+              "parse_tax_code · tax_root",
+            ),
+            ev(
+              "positive",
+              "Tổng đài dùng chung",
+              "norm_phone 02838112233 trùng với công ty mẹ.",
+              "normalizer.normalize_phone_vn",
+            ),
+            ev(
+              "negative",
+              "Có hậu tố mã chi nhánh (-001)",
+              "Bản ghi trái mang tax_branch 001 → quy tắc hệ thống phân tách quan hệ Mẹ – Chi nhánh.",
+              "matcher.compare_pair · conflicts",
+            ),
+            ev(
+              "negative",
+              "Khác loại thực thể và địa bàn",
+              "BRANCH tại VSIP Bình Dương so với COMPANY tại Tân Phú — không được gộp.",
+              "entity_type · address",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-003",
+          aliases: ["PAIR-ACC-03", "ACC-ERP-1074", "ACC-SRV-2099"],
+          left_source_key: "ACC-ERP-1074",
+          right_source_key: "ACC-SRV-2099",
+          entity_pool: "ACCOUNT",
+          similarity_score: 79,
+          proposed_category: "SUSPECTED_DUPLICATE",
+          suggested_decision: "insufficient",
+          evidence: [
+            ev(
+              "positive",
+              "Tên giao dịch tương đồng cao",
+              "Cả hai hồ sơ đều mang tên Thiết bị Thủy lực Á Châu.",
+              "legal_name · norm_name_no_accent",
+            ),
+            ev(
+              "positive",
+              "Trùng số tổng đài",
+              "norm_phone cùng là 02839998888.",
+              "normalizer.normalize_phone_vn",
+            ),
+            ev(
+              "negative",
+              "Xung đột Mã số thuế",
+              "0309887766 khác hoàn toàn 3702554411 → tự động khóa kết luận same.",
+              "tax_code · conflict_lock",
+            ),
+            ev(
+              "negative",
+              "Địa bàn và email tách biệt",
+              "contact@ tại Nhà Bè và service@ tại Dĩ An — cần chủ nguồn xác minh thêm.",
+              "email · address",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-004",
+          aliases: ["PAIR-CON-01", "CON-CRM-3012", "CON-CRM-3088"],
+          left_source_key: "CON-CRM-3012",
+          right_source_key: "CON-CRM-3088",
+          entity_pool: "CONTACT",
+          similarity_score: 91,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev(
+              "positive",
+              "Họ tên khớp khi bỏ dấu",
+              "Nguyễn Minh Tuấn và Nguyen Minh Tuan trùng tuyệt đối norm_name_no_accent.",
+              "normalizer.remove_accents",
+            ),
+            ev(
+              "positive",
+              "SĐT di động trùng khớp",
+              "+84 908 123 456 chuẩn hóa về 0908123456.",
+              "normalizer.normalize_phone_vn",
+            ),
+            ev(
+              "positive",
+              "Cùng đơn vị công tác",
+              "Cùng trực thuộc CTCP Cơ khí Chính xác Đại Nam.",
+              "company_name · Contact_CRM.csv",
+            ),
+            ev(
+              "negative",
+              "Khác tiền tố email",
+              "tuan.nm@ và tuan.nguyen@ cùng tên miền công ty nhưng khác local-part.",
+              "norm_email",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-005",
+          aliases: ["ACC-1042", "ACC-1089"],
+          left_source_key: "ACC-1042",
+          right_source_key: "ACC-1089",
+          entity_pool: "ACCOUNT",
+          similarity_score: 96.5,
+          proposed_category: "SAME_ENTITY",
+          suggested_decision: "same",
+          evidence: [
+            ev(
+              "positive",
+              "Trùng MST 0101248141",
+              "Hai dòng CSV Account từ ERP và CRM dùng chung mã số thuế.",
+              "accounts_source_a.csv · accounts_source_b.csv",
+            ),
+            ev(
+              "positive",
+              "Email và SĐT trùng chuẩn hóa",
+              "contact@fpt.com.vn khớp 100%; +84908123456 chuẩn hóa về 0908123456.",
+              "norm_email · norm_phone",
+            ),
+            ev(
+              "positive",
+              "Tên pháp nhân rút gọn khớp",
+              "Cty TNHH Phan mem FPT là bản rút gọn không dấu của Công ty TNHH Phần mềm FPT.",
+              "legal_name · norm_name_no_accent",
+            ),
+            ev(
+              "negative",
+              "Cách ghi địa chỉ khác nhau",
+              "TP. Thủ Đức và Quận 9 cùng Khu Công nghệ cao nhưng chuỗi thô khác định dạng.",
+              "address",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-006",
+          aliases: ["ACC-2010", "ACC-2015"],
+          left_source_key: "ACC-2010",
+          right_source_key: "ACC-2015",
+          entity_pool: "ACCOUNT",
+          similarity_score: 90,
+          proposed_category: "RELATED_BUT_DISTINCT",
+          suggested_decision: "related",
+          evidence: [
+            ev(
+              "positive",
+              "Cùng MST gốc và email",
+              "tax_root 0314892100 và sales@dainam-ind.vn xuất hiện ở cả hai nguồn.",
+              "accounts_source_a.csv · accounts_source_b.csv",
+            ),
+            ev(
+              "positive",
+              "SĐT tổng đài trùng",
+              "02838991122 khớp sau chuẩn hóa.",
+              "norm_phone",
+            ),
+            ev(
+              "negative",
+              "Mã chi nhánh -001",
+              "Bản ghi phải thuộc loại BRANCH → gắn xung đột PARENT_BRANCH_RELATIONSHIP.",
+              "matcher.compare_pair",
+            ),
+            ev(
+              "negative",
+              "Địa bàn nhà máy khác trụ sở",
+              "Quận 12 (TP.HCM) so với KCN VSIP 1 (Thuận An, Bình Dương).",
+              "address · entity_type",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-007",
+          aliases: ["PER-3011", "PER-3088"],
+          left_source_key: "PER-3011",
+          right_source_key: "PER-3088",
+          entity_pool: "CONTACT",
+          similarity_score: 62.6,
+          proposed_category: "SUSPECTED_DUPLICATE",
+          suggested_decision: "same",
+          evidence: [
+            ev(
+              "positive",
+              "Trùng thông tin người liên hệ",
+              "Họ tên bỏ dấu, email và SĐT chuẩn hóa đều trùng khớp.",
+              "contacts_source.csv · WEB_LEAD & ZALO_LEAD",
+            ),
+            ev(
+              "negative",
+              "Điểm thấp hơn ngưỡng 65",
+              "Cần Data Steward đối chiếu thủ công để xác nhận đề xuất.",
+              "matcher · threshold",
+            ),
+            ev(
+              "negative",
+              "Tên công ty viết khác độ đầy đủ",
+              "FPT Software HCM so với Công ty TNHH Phần mềm FPT.",
+              "company_name",
+            ),
+          ],
+        }),
+        pair({
+          pair_id: "PAIR-008",
+          aliases: ["ACC-3001"],
+          left_source_key: "ACC-1042",
+          right_source_key: "ACC-3001",
+          entity_pool: "ACCOUNT",
+          similarity_score: 18,
+          proposed_category: "DISTINCT",
+          suggested_decision: "distinct",
+          evidence: [
+            ev(
+              "negative",
+              "MST, SĐT, email và tên khác hoàn toàn",
+              "FPT (0101248141) và VNG (0303490096) là hai doanh nghiệp độc lập.",
+              "accounts_source_a.csv",
+            ),
+            ev(
+              "negative",
+              "Chỉ cùng địa bàn TP.HCM",
+              "Cùng tỉnh/thành không phải bằng chứng trùng lặp thực thể.",
+              "address",
+            ),
+          ],
+        }),
+      ];
+
+      const state = {
+        activeId: "PAIR-001",
+        apiLoaded: false,
+        queuePool: "ALL",
+        queueQuery: "",
+        diffOnly: false,
+      };
+
+      function esc(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function displayName(row) {
+        return row.legal_name || row.full_name || row.source_key;
+      }
+
+      function tokenSim(a, b) {
+        const left = new Set(
+          removeAccents(a)
+            .split(/[^a-z0-9]+/)
+            .filter(Boolean),
+        );
+        const right = new Set(
+          removeAccents(b)
+            .split(/[^a-z0-9]+/)
+            .filter(Boolean),
+        );
+        if (!left.size || !right.size) return 0;
+        let shared = 0;
+        left.forEach((token) => {
+          if (right.has(token)) shared += 1;
+        });
+        return Math.round((2 * shared * 100) / (left.size + right.size));
+      }
+
+      function fieldPlan(left, right) {
+        const contact =
+          left.entity_type === "CONTACT" || right.entity_type === "CONTACT";
+        const fields = [
+          {
+            key: "name",
+            label: contact ? "Họ tên / Tên pháp lý" : "Tên pháp lý",
+            raw: (row) => row.legal_name || row.full_name || "",
+            norms: (row) => [
+              ["norm_name_accent", row.norm_name_accent || "—"],
+              ["norm_name_no_accent", row.norm_name_no_accent || "—"],
+            ],
+          },
+        ];
+        if (!contact || left.tax_code || right.tax_code) {
+          fields.push({
+            key: "tax_code",
+            label: "Mã số thuế",
+            raw: (row) => row.tax_code || "",
+            norms: (row) => [
+              ["tax_root", row.tax_root || "—"],
+              ["tax_branch", row.tax_branch || "—"],
+            ],
+          });
+        }
+        fields.push(
+          {
+            key: "phone",
+            label: "Số điện thoại",
+            raw: (row) => row.phone || "",
+            norms: (row) => [["norm_phone", row.norm_phone || "—"]],
+          },
+          {
+            key: "email",
+            label: "Email",
+            raw: (row) => row.email || "",
+            norms: (row) => [["norm_email", row.norm_email || "—"]],
+          },
+        );
+        if (left.address || right.address) {
+          fields.push({
+            key: "address",
+            label: "Địa chỉ",
+            raw: (row) => row.address || "",
+            norms: () => [],
+            normNote: "Giữ nguyên địa chỉ gốc để đối chiếu hành chính",
+          });
+        }
+        if (left.company_name || right.company_name) {
+          fields.push({
+            key: "company_name",
+            label: "Đơn vị công tác",
+            raw: (row) => row.company_name || "",
+            norms: (row) => [
+              ["bỏ dấu", removeAccents(row.company_name || "") || "—"],
+            ],
+          });
+        }
+        if (left.affiliation_dates || right.affiliation_dates) {
+          fields.push({
+            key: "affiliation",
+            label: "Thời gian gắn kết",
+            raw: (row) => row.affiliation_dates || "",
+            norms: () => [],
+            normNote: "Giữ nguyên mốc thời gian gốc",
+          });
+        }
+        fields.push(
+          {
+            key: "entity_type",
+            label: "Loại thực thể",
+            raw: (row) => row.entity_type || "",
+            norms: (row) => [
+              [
+                "normalized",
+                String(row.entity_type || "")
+                  .trim()
+                  .toUpperCase() || "—",
+              ],
+            ],
+          },
+          {
+            key: "source_system",
+            label: "Hệ thống nguồn",
+            raw: (row) => row.source_system || "",
+            norms: (row) => [
+              [
+                "normalized",
+                String(row.source_system || "")
+                  .trim()
+                  .toLowerCase() || "—",
+              ],
+            ],
+          },
+        );
+        return fields;
+      }
+
+      function signalFor(key, left, right) {
+        if (key === "phone") {
+          if (!left.norm_phone || !right.norm_phone)
+            return { level: "missing", label: "Thiếu SĐT" };
+          return left.norm_phone === right.norm_phone
+            ? { level: "match", label: "Khớp chuẩn hóa" }
+            : { level: "conflict", label: "Lệch SĐT" };
+        }
+        if (key === "email") {
+          if (!left.norm_email || !right.norm_email)
+            return { level: "missing", label: "Thiếu email" };
+          if (left.norm_email === right.norm_email)
+            return { level: "match", label: "Khớp chuẩn hóa" };
+          const dom = (v) => v.split("@")[1] || "";
+          return dom(left.norm_email) &&
+            dom(left.norm_email) === dom(right.norm_email)
+            ? { level: "partial", label: "Cùng miền" }
+            : { level: "conflict", label: "Lệch email" };
+        }
+        if (key === "tax_code") {
+          if (!left.tax_root || !right.tax_root)
+            return { level: "missing", label: "Thiếu MST" };
+          if (left.tax_code && left.tax_code === right.tax_code)
+            return { level: "match", label: "Khớp tuyệt đối" };
+          if (left.tax_root === right.tax_root)
+            return { level: "partial", label: "Cùng gốc, khác nhánh" };
+          return { level: "conflict", label: "Xung đột MST" };
+        }
+        if (key === "entity_type" || key === "source_system") {
+          const a =
+            key === "entity_type" ? left.entity_type : left.source_system;
+          const b =
+            key === "entity_type" ? right.entity_type : right.source_system;
+          if (!a || !b) return { level: "missing", label: "Thiếu" };
+          return String(a).toLowerCase() === String(b).toLowerCase()
+            ? { level: "match", label: "Cùng giá trị" }
+            : { level: "partial", label: "Khác nguồn / loại" };
+        }
+        const pick =
+          key === "name"
+            ? [
+                left.legal_name || left.full_name,
+                right.legal_name || right.full_name,
+              ]
+            : key === "company_name"
+              ? [left.company_name, right.company_name]
+              : key === "address"
+                ? [left.address, right.address]
+                : [left.affiliation_dates, right.affiliation_dates];
+        if (!pick[0] || !pick[1])
+          return { level: "missing", label: "Thiếu giá trị" };
+        if (removeAccents(pick[0]) === removeAccents(pick[1]))
+          return { level: "match", label: "Khớp bỏ dấu" };
+        const score = tokenSim(pick[0], pick[1]);
+        if (score >= 70)
+          return { level: "partial", label: `Gần nhau ${score}%` };
+        return { level: "conflict", label: `Khác chuỗi ${score}%` };
+      }
+
+      const CELL_STYLE = {
+        match:
+          "bg-emerald-50/50 dark:bg-emerald-950/25 border-emerald-200/80 dark:border-emerald-800/60",
+        partial:
+          "bg-amber-50/50 dark:bg-amber-950/25 border-amber-200/80 dark:border-amber-800/60",
+        conflict:
+          "bg-rose-50/50 dark:bg-rose-950/25 border-rose-200/80 dark:border-rose-800/60",
+        missing:
+          "bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700",
+      };
+      const PILL_STYLE = {
+        match:
+          "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+        partial:
+          "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+        conflict:
+          "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+        missing:
+          "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+      };
+
+      function readStore() {
+        try {
+          return JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+        } catch (e) {
+          return {};
+        }
+      }
+      function writeStore(store) {
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      }
+      function storeKey(item) {
+        return [item.left_source_key, item.right_source_key].sort().join("|");
+      }
+      function savedFor(item) {
+        return readStore()[storeKey(item)] || null;
+      }
+      function activePair() {
+        return (
+          pairs.find((item) => item.pair_id === state.activeId) || pairs[0]
+        );
+      }
+
+      function isFastApiRoute() {
+        return (
+          location.protocol !== "file:" && !location.pathname.endsWith(".html")
+        );
+      }
+      function dashboardUrl() {
+        return isFastApiRoute() ? "/" : "index.html";
+      }
+      function reviewUrl() {
+        return isFastApiRoute() ? "/review" : "duplicate_review.html";
+      }
+
+      function findPairFromQuery() {
+        const params = new URLSearchParams(location.search);
+        const id =
+          params.get("id") || params.get("pair_id") || params.get("pair");
+        const left = params.get("left") || params.get("left_source_key");
+        const right = params.get("right") || params.get("right_source_key");
+        if (left && right) {
+          const both = pairs.find((item) => {
+            const keys = [item.left_source_key, item.right_source_key];
+            return keys.includes(left) && keys.includes(right);
+          });
+          if (both) return { pair: both, missing: false };
+        }
+        if (!id) return { pair: pairs[0], missing: false };
+        const exact = pairs.find(
+          (item) =>
+            item.pair_id === id ||
+            String(item.id) === id ||
+            item.aliases.includes(id),
+        );
+        if (exact) return { pair: exact, missing: false };
+        const asEither = pairs.find(
+          (item) => item.left_source_key === id || item.right_source_key === id,
+        );
+        if (asEither) return { pair: asEither, missing: false };
+        return { pair: pairs[0], missing: true, requested: id };
+      }
+
+      function setDataBadge(item) {
+        const badge = document.getElementById("badge-data");
+        const sideTag = document.getElementById("sidebar-api-tag");
+        const sideText = document.getElementById("sidebar-source-text");
+        const sideDot = document.getElementById("sidebar-status-dot");
+        if (item.origin === "api") {
+          badge.className =
+            "px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-semibold text-[11px] flex items-center gap-1.5 shrink-0";
+          badge.innerHTML =
+            '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span><span>Live FastAPI</span>';
+          sideTag.className =
+            "font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300";
+          sideTag.textContent = "ONLINE";
+          sideText.textContent = "Live FastAPI";
+          sideDot.className = "w-2 h-2 rounded-full bg-emerald-400 live-dot";
+        } else {
+          badge.className =
+            "px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 font-semibold text-[11px] flex items-center gap-1.5 shrink-0";
+          badge.innerHTML =
+            '<span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span><span>Dữ liệu Demo</span>';
+          sideTag.className =
+            "font-mono text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-200";
+          sideTag.textContent = "LOCAL";
+          sideText.textContent = "Dữ liệu Demo";
+          sideDot.className = "w-2 h-2 rounded-full bg-brand-400";
+        }
+      }
+
+      function updateSidebarProgress() {
+        const savedCount = pairs.filter((p) => !!savedFor(p)).length;
+        const pct = pairs.length
+          ? Math.round((savedCount / pairs.length) * 100)
+          : 0;
+        document.getElementById("sidebar-saved-progress").textContent =
+          `${savedCount} / ${pairs.length}`;
+        document.getElementById("sidebar-progress-bar").style.width = `${pct}%`;
+      }
+
+      function filteredQueuePairs() {
+        const q = removeAccents(state.queueQuery);
+        return pairs.filter((item) => {
+          const mPool =
+            state.queuePool === "ALL" || item.entity_pool === state.queuePool;
+          const mQuery =
+            !q ||
+            [
+              item.pair_id,
+              item.left_source_key,
+              item.right_source_key,
+              displayName(item.left),
+              displayName(item.right),
+              item.left.tax_code,
+              item.right.tax_code,
+            ].some((v) => removeAccents(v).includes(q));
+          return mPool && mQuery;
+        });
+      }
+
+      function renderQueue() {
+        const host = document.getElementById("pair-queue");
+        const filtered = filteredQueuePairs();
+        document.getElementById("queue-count").textContent =
+          `${filtered.length} / ${pairs.length}`;
+
+        if (!filtered.length) {
+          host.innerHTML =
+            '<div class="py-8 text-center text-xs text-slate-400">Không tìm thấy cặp phù hợp.</div>';
+          updateSidebarProgress();
+          return;
+        }
+
+        host.innerHTML = filtered
+          .map((item) => {
+            const saved = savedFor(item);
+            const active = item.pair_id === state.activeId;
+            const icon =
+              item.entity_pool === "CONTACT"
+                ? "fa-address-card"
+                : "fa-building";
+            return `
+              <button type="button" data-pair="${esc(item.pair_id)}" class="queue-item w-full text-left px-3 py-2.5 rounded-xl border ${active ? "active" : "border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/50 text-slate-800 dark:text-slate-100"}">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-mono text-[11px] font-bold">${esc(item.pair_id)}</span>
+                  <span class="font-mono tnum text-[10px] font-semibold px-1.5 py-0.5 rounded ${active ? "bg-white/20 text-white" : "bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300"}">${esc(item.similarity_score)}%</span>
+                </div>
+                <div class="text-xs font-medium mt-1 leading-snug truncate ${active ? "text-brand-50" : "text-slate-700 dark:text-slate-200"}">${esc(displayName(item.left))}</div>
+                <div class="text-[10px] mt-1.5 flex items-center justify-between gap-1.5 ${active ? "text-brand-100" : "text-slate-500"}">
+                  <span class="inline-flex items-center gap-1"><i class="fa-solid ${icon}"></i>${esc(item.entity_pool)}</span>
+                  ${
+                    saved
+                      ? `<span class="px-1.5 py-0.5 rounded font-semibold ${active ? "bg-emerald-400/25 text-white" : "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"}"><i class="fa-solid fa-check mr-0.5"></i>${esc(saved.decision_category)}</span>`
+                      : `<span class="px-1.5 py-0.5 rounded font-medium ${active ? "bg-black/20 text-brand-100" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}">CHỜ DUYỆT</span>`
+                  }
+                </div>
+              </button>`;
+          })
+          .join("");
+
+        host.querySelectorAll("[data-pair]").forEach((button) => {
+          button.addEventListener("click", () =>
+            selectPair(button.dataset.pair, true),
+          );
+        });
+        updateSidebarProgress();
+      }
+
+      function sideCard(row, side) {
+        const isContact = row.entity_pool === "CONTACT";
+        const poolBadge = isContact
+          ? '<span class="px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-semibold text-[10px]">CONTACT</span>'
+          : '<span class="px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 font-semibold text-[10px]">ACCOUNT</span>';
+        return `
+          <article class="corp-card p-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-400">${side}</span>
+              <div class="flex items-center gap-1.5">
+                ${poolBadge}
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">${esc(row.entity_type)}</span>
+              </div>
+            </div>
+            <h3 class="text-sm font-bold leading-snug text-slate-900 dark:text-white">${esc(displayName(row))}</h3>
+            <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+              <p class="font-mono text-xs font-semibold text-brand-700 dark:text-brand-400">#${esc(row.source_key)}</p>
+              <p class="text-[11px] font-mono text-slate-500 truncate">${esc(row.source_system)} · ${esc(row.source_file || "nguồn mẫu")}</p>
+            </div>
+          </article>`;
+      }
+
+      function normBlock(field, row) {
+        const lines = field.norms(row);
+        if (!lines.length) {
+          return `<p class="text-[11px] text-slate-500 mt-1 italic">${esc(field.normNote || "Không có giá trị chuẩn hóa riêng.")}</p>`;
+        }
+        return `<dl class="mt-1 space-y-0.5">${lines
+          .map(
+            ([label, value]) =>
+              `<div class="flex gap-2 text-[11px]"><dt class="font-mono text-slate-500 shrink-0">${esc(label)}:</dt><dd class="font-mono font-medium text-slate-800 dark:text-slate-200 break-all">${esc(value || "—")}</dd></div>`,
+          )
+          .join("")}</dl>`;
+      }
+
+      function renderFields(item) {
+        const host = document.getElementById("field-compare");
+        const header = `
+          <div class="hidden lg:grid grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] gap-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 px-1">
+            <div>Trường dữ liệu</div>
+            <div>Bản ghi trái · Gốc &amp; Chuẩn hóa</div>
+            <div>Bản ghi phải · Gốc &amp; Chuẩn hóa</div>
+          </div>`;
+
+        const rows = fieldPlan(item.left, item.right)
+          .map((field) => ({
+            field,
+            signal: signalFor(field.key, item.left, item.right),
+          }))
+          .filter((x) => !state.diffOnly || x.signal.level !== "match");
+
+        if (!rows.length) {
+          host.innerHTML =
+            header +
+            '<div class="py-6 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl">Tất cả các trường đều trùng khớp — hãy tắt bộ lọc để xem toàn bộ.</div>';
+          return;
+        }
+
+        host.innerHTML =
+          header +
+          rows
+            .map(({ field, signal }) => {
+              const cellTone = CELL_STYLE[signal.level];
+              const pillTone = PILL_STYLE[signal.level];
+              const cell = (row) => `
+                <div class="rounded-xl border p-3.5 ${cellTone} transition-all">
+                  <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Giá trị gốc</div>
+                  <div class="text-xs font-semibold text-slate-900 dark:text-white mt-0.5 break-words">${esc(field.raw(row) || "—")}</div>
+                  <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-2.5">Chuẩn hóa</div>
+                  ${normBlock(field, row)}
+                </div>`;
+              return `
+                <div class="grid grid-cols-1 lg:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)] gap-3 items-stretch">
+                  <div class="flex lg:flex-col justify-between gap-2 px-1 py-1.5">
+                    <div class="text-xs font-semibold text-slate-800 dark:text-slate-100">${esc(field.label)}</div>
+                    <span class="self-start text-[10px] font-semibold px-2 py-0.5 rounded-full border ${pillTone}">${esc(signal.label)}</span>
+                  </div>
+                  ${cell(item.left)}
+                  ${cell(item.right)}
+                </div>`;
+            })
+            .join("");
+      }
+
+      function renderEvidence(item) {
+        const paint = (polarity, hostId) => {
+          const rows = item.evidence.filter((e) => e.polarity === polarity);
+          const host = document.getElementById(hostId);
+          if (!rows.length) {
+            host.innerHTML =
+              '<p class="text-xs text-slate-400 italic">Không có bằng chứng nào ở nhóm này.</p>';
+            return;
+          }
+          const borderAccent =
+            polarity === "positive"
+              ? "border-l-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20"
+              : "border-l-rose-500 bg-rose-50/40 dark:bg-rose-950/20";
+          host.innerHTML = rows
+            .map(
+              (entry) => `
+                <article class="rounded-xl border border-slate-200 dark:border-slate-700/80 border-l-4 ${borderAccent} p-3 space-y-1">
+                  <h4 class="text-xs font-semibold text-slate-900 dark:text-white">${esc(entry.title)}</h4>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${esc(entry.detail)}</p>
+                  <p class="text-[10px] font-mono text-slate-400 break-words pt-0.5">Nguồn: ${esc(entry.source)}</p>
+                </article>`,
+            )
+            .join("");
+        };
+        paint("positive", "evidence-positive");
+        paint("negative", "evidence-negative");
+      }
+
+      function fillForm(item) {
+        const saved = savedFor(item);
+        document.getElementById("field-left").value = item.left_source_key;
+        document.getElementById("field-right").value = item.right_source_key;
+        const decision =
+          saved?.decision_category || item.suggested_decision || "";
+        document
+          .querySelectorAll('input[name="decision_category"]')
+          .forEach((input) => {
+            input.checked = input.value === decision;
+          });
+        document.getElementById("field-steward").value =
+          saved?.steward_user || "data.steward";
+        document.getElementById("field-reason").value = saved?.reason || "";
+        updateReasonCount();
+        document.getElementById("form-error").textContent = "";
+        const result = document.getElementById("proposal-result");
+        if (saved) {
+          result.classList.remove("hidden");
+          document.getElementById("proposal-json").textContent = JSON.stringify(
+            schemaPayload(saved),
+            null,
+            2,
+          );
+        } else {
+          result.classList.add("hidden");
+          document.getElementById("proposal-json").textContent = "";
+        }
+      }
+
+      function schemaPayload(record) {
+        return {
+          left_source_key: record.left_source_key,
+          right_source_key: record.right_source_key,
+          decision_category: record.decision_category,
+          steward_user: record.steward_user,
+          approver_user: "",
+          reason: record.reason,
+        };
+      }
+
+      function applyReasonTemplate(type) {
+        const item = activePair();
+        const templates = {
+          same: `MST (${item.left.tax_code || "khớp"}) và SĐT chuẩn hóa trùng khớp hoàn toàn, tên pháp lý cùng thực thể (chỉ khác định dạng địa chỉ). Đề xuất same, chuyển Approver phê duyệt độc lập.`,
+          related: `Hai hồ sơ chung gốc MST và tổng đài nhưng khác hậu tố chi nhánh (${item.left.tax_code} vs ${item.right.tax_code}). Đề xuất related (Công ty Mẹ – Chi nhánh), không gộp hồ sơ.`,
+          insufficient: `Trùng tên giao dịch và số điện thoại nhưng xung đột Mã số thuế giữa hai nguồn (${item.left.tax_code} vs ${item.right.tax_code}). Đề xuất insufficient, tạm hoãn chờ xác minh.`,
+          distinct: `Các trường định danh cốt lõi (MST, SĐT, email, tên) khác biệt hoàn toàn. Đề xuất distinct — hai thực thể độc lập.`,
+        };
+        document
+          .querySelectorAll('input[name="decision_category"]')
+          .forEach((i) => (i.checked = i.value === type));
+        const ta = document.getElementById("field-reason");
+        ta.value = templates[type] || "";
+        updateReasonCount();
+        ta.focus();
+      }
+
+      function triggerPanelAnimation() {
+        const panel = document.getElementById("detail-panel");
+        panel.classList.remove("animate-pair-enter");
+        void panel.offsetWidth;
+        panel.classList.add("animate-pair-enter");
+      }
+
+      function renderPair() {
+        const item = activePair();
+        const scoreVal = Math.min(
+          100,
+          Math.max(0, Number(item.similarity_score || 0)),
+        );
+        document.getElementById("pair-heading").textContent =
+          `${item.pair_id} · ${item.left_source_key} ↔ ${item.right_source_key}`;
+        document.getElementById("pair-summary").textContent =
+          `${displayName(item.left)} đối chiếu với ${displayName(item.right)}. Gợi ý từ bộ so khớp: ${item.proposed_category}.`;
+        document.getElementById("hero-pool-pill").textContent =
+          `${item.entity_pool} POOL`;
+        document.getElementById("pair-score").textContent =
+          `${item.similarity_score}`;
+        document.getElementById("pair-score-bar").style.width = `${scoreVal}%`;
+        document.getElementById("pair-category").textContent =
+          item.proposed_category;
+        document.getElementById("pair-state").textContent = savedFor(item)
+          ? "PENDING"
+          : item.review_state || "NEW";
+        document.getElementById("record-heads").innerHTML =
+          sideCard(item.left, "Bản ghi trái") +
+          sideCard(item.right, "Bản ghi phải");
+        setDataBadge(item);
+        renderFields(item);
+        renderEvidence(item);
+        fillForm(item);
+        renderQueue();
+        triggerPanelAnimation();
+      }
+
+      function selectPair(pairId, push) {
+        state.activeId = pairId;
+        document.getElementById("missing-banner").classList.add("hidden");
+        if (push) {
+          const url = new URL(location.href);
+          url.searchParams.set("id", pairId);
+          url.searchParams.delete("pair_id");
+          url.searchParams.delete("pair");
+          url.searchParams.delete("left");
+          url.searchParams.delete("right");
+          history.pushState({ id: pairId }, "", url);
+        }
+        renderPair();
+      }
+
+      function stepPair(delta) {
+        const list = filteredQueuePairs();
+        if (!list.length) return;
+        const idx = list.findIndex((p) => p.pair_id === state.activeId);
+        const nextIdx = idx < 0 ? 0 : (idx + delta + list.length) % list.length;
+        selectPair(list[nextIdx].pair_id, true);
+      }
+
+      function updateReasonCount() {
+        const len = document.getElementById("field-reason").value.trim().length;
+        const el = document.getElementById("reason-count");
+        el.textContent = `${len} / 15 ký tự tối thiểu`;
+        el.className =
+          len >= 15
+            ? "font-mono text-[11px] font-semibold text-emerald-600 dark:text-emerald-400"
+            : "font-mono text-[11px] text-slate-400";
+      }
+
+      function showToast(message, type = "ok") {
+        const toast = document.getElementById("toast");
+        toast.querySelector("i").className =
+          type === "warn"
+            ? "fa-solid fa-triangle-exclamation text-amber-400 text-sm shrink-0"
+            : "fa-solid fa-circle-check text-emerald-400 text-sm shrink-0";
+        document.getElementById("toast-text").textContent = message;
+        toast.classList.remove("hidden");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.add("hidden"), 3600);
+      }
+
+      function applyQuery() {
+        const found = findPairFromQuery();
+        state.activeId = found.pair.pair_id;
+        const banner = document.getElementById("missing-banner");
+        if (found.missing) {
+          banner.classList.remove("hidden");
+          banner.innerHTML = `<i class="fa-solid fa-circle-info text-amber-500"></i><span>Không tìm thấy cặp với mã <strong>“${esc(found.requested)}”</strong>. Đang mở cặp mặc định <strong>${esc(found.pair.pair_id)}</strong>.</span>`;
+        } else {
+          banner.classList.add("hidden");
+        }
+        renderPair();
+      }
+
+      async function loadApi(manual = false) {
+        const iconSync = document.getElementById("icon-sync");
+        if (iconSync) iconSync.classList.add("fa-spin");
+        try {
+          const [recordsRes, candidatesRes] = await Promise.all([
+            fetch("/api/records", { headers: { Accept: "application/json" } }),
+            fetch("/api/candidates", {
+              headers: { Accept: "application/json" },
+            }),
+          ]);
+          if (!recordsRes.ok || !candidatesRes.ok) {
+            throw new Error(`HTTP ${recordsRes.status}`);
+          }
+          const recordsJson = await recordsRes.json();
+          const candidatesJson = await candidatesRes.json();
+          const rawRecords = Array.isArray(recordsJson)
+            ? recordsJson
+            : recordsJson.records || [];
+          const rawCandidates = Array.isArray(candidatesJson)
+            ? candidatesJson
+            : candidatesJson.candidates || [];
+
+          const byKey = {};
+          rawRecords.forEach((row) => {
+            byKey[row.source_key] = enrich({
+              ...row,
+              entity_pool:
+                row.entity_type === "CONTACT" ? "CONTACT" : "ACCOUNT",
+              source_file:
+                row.entity_type === "CONTACT"
+                  ? "contacts_source.csv"
+                  : "accounts_source_*.csv",
+            });
+          });
+
+          rawCandidates.forEach((candidate) => {
+            const suggested =
+              candidate.proposed_category === "SAME_ENTITY"
+                ? "same"
+                : candidate.proposed_category === "RELATED_BUT_DISTINCT"
+                  ? "related"
+                  : candidate.proposed_category === "DISTINCT"
+                    ? "distinct"
+                    : "insufficient";
+            const incoming = {
+              pair_id: `API-${candidate.left_source_key}-${candidate.right_source_key}`,
+              aliases: [candidate.left_source_key, candidate.right_source_key],
+              left_source_key: candidate.left_source_key,
+              right_source_key: candidate.right_source_key,
+              entity_pool: candidate.entity_pool || "ACCOUNT",
+              similarity_score: candidate.similarity_score,
+              proposed_category: candidate.proposed_category,
+              review_state: candidate.review_state || "NEW",
+              origin: "api",
+              suggested_decision: suggested,
+              left:
+                byKey[candidate.left_source_key] ||
+                enrich({
+                  source_key: candidate.left_source_key,
+                  legal_name: candidate.left_source_key,
+                }),
+              right:
+                byKey[candidate.right_source_key] ||
+                enrich({
+                  source_key: candidate.right_source_key,
+                  legal_name: candidate.right_source_key,
+                }),
+              evidence: [
+                ...(candidate.reasons || []).map((text) =>
+                  ev(
+                    "positive",
+                    text,
+                    "Bằng chứng so khớp sinh trực tiếp từ bộ máy FastAPI.",
+                    "GET /api/candidates · matcher",
+                  ),
+                ),
+                ...(candidate.conflicts || []).map((text) =>
+                  ev(
+                    "negative",
+                    text,
+                    "Cảnh báo xung đột chặn gộp tự động.",
+                    "GET /api/candidates · conflicts",
+                  ),
+                ),
+              ],
+            };
+            const idx = pairs.findIndex(
+              (item) => storeKey(item) === storeKey(incoming),
+            );
+            if (idx >= 0) {
+              const cur = pairs[idx];
+              pairs[idx] = {
+                ...cur,
+                similarity_score: incoming.similarity_score,
+                proposed_category: incoming.proposed_category,
+                review_state: incoming.review_state,
+                origin: "api",
+                left:
+                  incoming.left.legal_name || incoming.left.full_name
+                    ? incoming.left
+                    : cur.left,
+                right:
+                  incoming.right.legal_name || incoming.right.full_name
+                    ? incoming.right
+                    : cur.right,
+                evidence: cur.evidence.length
+                  ? cur.evidence
+                  : incoming.evidence,
+              };
+            } else {
+              incoming.id = incoming.pair_id;
+              pairs.unshift(incoming);
+            }
+          });
+          state.apiLoaded = true;
+          applyQuery();
+          if (manual) {
+            showToast(
+              `Đã đồng bộ thành công ${rawCandidates.length} cặp từ FastAPI.`,
+            );
+          }
+        } catch (error) {
+          state.apiLoaded = false;
+          if (manual) {
+            showToast(
+              "Chưa kết nối được FastAPI — đang sử dụng bộ dữ liệu Demo.",
+              "warn",
+            );
+          }
+        } finally {
+          if (iconSync) iconSync.classList.remove("fa-spin");
+        }
+      }
+
+      /* ==================== SIDEBAR, THEME & COMMAND PALETTE ==================== */
+      function toggleSidebar() {
+        document.body.classList.toggle("sidebar-collapsed");
+      }
+
+      function applySavedTheme() {
+        const dark = localStorage.getItem("ai13-theme") === "dark";
+        document.documentElement.classList.toggle("dark", dark);
+        document.getElementById("icon-dark").className = dark
+          ? "fa-solid fa-sun text-xs"
+          : "fa-solid fa-moon text-xs";
+      }
+
+      let cmdList = [];
+      function openCommandPalette() {
+        document.getElementById("cmd-overlay").classList.add("open");
+        const inp = document.getElementById("cmd-input");
+        inp.value = "";
+        renderCmdItems("");
+        setTimeout(() => inp.focus(), 20);
+      }
+      function closeCommandPalette() {
+        document.getElementById("cmd-overlay").classList.remove("open");
+      }
+      function renderCmdItems(q) {
+        const kw = removeAccents(q);
+        const actions = [
+          {
+            group: "Điều hướng",
+            icon: "fa-chart-pie",
+            title: "Quay lại Dashboard Tổng quan",
+            sub: "Xem KPI, Danh sách bản ghi & Sổ Crosswalk",
+            run: () => (location.href = dashboardUrl()),
+          },
+          {
+            group: "Thao tác",
+            icon: "fa-arrows-rotate",
+            title: "Đồng bộ dữ liệu Live FastAPI",
+            sub: "Gọi lại GET /api/records & /api/candidates",
+            run: () => loadApi(true),
+          },
+          ...pairs.map((p) => ({
+            group: p.entity_pool,
+            icon: "fa-code-compare",
+            title: `${p.pair_id}: ${displayName(p.left)}`,
+            sub: `${p.left_source_key} ↔ ${p.right_source_key} • Độ khớp ${p.similarity_score}%`,
+            run: () => selectPair(p.pair_id, true),
+          })),
+        ];
+
+        cmdList = kw
+          ? actions
+              .filter((a) =>
+                removeAccents(a.title + " " + a.sub + " " + a.group).includes(
+                  kw,
+                ),
+              )
+              .slice(0, 10)
+          : actions.slice(0, 9);
+
+        const box = document.getElementById("cmd-results");
+        if (!cmdList.length) {
+          box.innerHTML =
+            '<div class="py-8 text-center text-xs text-slate-400">Không tìm thấy kết quả phù hợp</div>';
+          return;
+        }
+        box.innerHTML = cmdList
+          .map(
+            (item, i) => `
+          <div class="cmd-item ${i === 0 ? "active" : ""} px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer" data-idx="${i}">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0"><i class="fa-solid ${item.icon} text-[11px]"></i></span>
+              <div class="min-w-0">
+                <div class="text-xs font-semibold text-slate-900 dark:text-white truncate">${esc(item.title)}</div>
+                <div class="text-[11px] text-slate-500 truncate">${esc(item.sub)}</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-medium text-slate-400 shrink-0">${esc(item.group)}</span>
+          </div>`,
+          )
+          .join("");
+        box.querySelectorAll(".cmd-item").forEach((el) => {
+          el.onclick = () => {
+            const act = cmdList[Number(el.dataset.idx)];
+            closeCommandPalette();
+            if (act) act.run();
+          };
+        });
+      }
+
+      function initMicroInteractions() {
+        // Scroll progress
+        const main = document.getElementById("main-scroll");
+        const bar = document.getElementById("scroll-progress");
+        main.addEventListener("scroll", () => {
+          const max = main.scrollHeight - main.clientHeight;
+          bar.style.width = (max > 0 ? (main.scrollTop / max) * 100 : 0) + "%";
+        });
+
+        // Cursor Spotlight
+        document.addEventListener("mousemove", (e) => {
+          const card = e.target.closest(".corp-card, .hero-banner");
+          if (!card) return;
+          const r = card.getBoundingClientRect();
+          card.style.setProperty("--mx", e.clientX - r.left + "px");
+          card.style.setProperty("--my", e.clientY - r.top + "px");
+        });
+
+        // Collapsed sidebar tooltip
+        const tip = document.getElementById("nav-tooltip");
+        document.querySelectorAll("#app-sidebar .nav-item").forEach((el) => {
+          el.addEventListener("mouseenter", () => {
+            if (!document.body.classList.contains("sidebar-collapsed")) return;
+            tip.textContent = el.dataset.tip || "";
+            const r = el.getBoundingClientRect();
+            tip.style.left = r.right + 10 + "px";
+            tip.style.top = r.top + r.height / 2 - 14 + "px";
+            tip.classList.add("visible");
+          });
+          el.addEventListener("mouseleave", () =>
+            tip.classList.remove("visible"),
+          );
+        });
+
+        // Command palette keyboard
+        const cmdInp = document.getElementById("cmd-input");
+        cmdInp.addEventListener("input", () => renderCmdItems(cmdInp.value));
+        cmdInp.addEventListener("keydown", (e) => {
+          const items = [
+            ...document.querySelectorAll("#cmd-results .cmd-item"),
+          ];
+          if (!items.length) return;
+          let idx = items.findIndex((x) => x.classList.contains("active"));
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            idx = (idx + 1) % items.length;
+            items.forEach((x, k) => x.classList.toggle("active", k === idx));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            idx = (idx - 1 + items.length) % items.length;
+            items.forEach((x, k) => x.classList.toggle("active", k === idx));
+          } else if (e.key === "Enter" && idx >= 0) {
+            e.preventDefault();
+            items[idx].click();
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            const ov = document.getElementById("cmd-overlay");
+            ov.classList.contains("open")
+              ? closeCommandPalette()
+              : openCommandPalette();
+          } else if (e.key === "Escape") {
+            closeCommandPalette();
+          }
+        });
+      }
+
+      /* ==================== EVENT BINDINGS ==================== */
+      applySavedTheme();
+      initMicroInteractions();
+
+      document.getElementById("btn-dark").addEventListener("click", () => {
+        const dark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("ai13-theme", dark ? "dark" : "light");
+        document.getElementById("icon-dark").className = dark
+          ? "fa-solid fa-sun text-xs"
+          : "fa-solid fa-moon text-xs";
+      });
+
+      document
+        .getElementById("btn-sync-api")
+        .addEventListener("click", () => loadApi(true));
+      document
+        .getElementById("btn-prev-pair")
+        .addEventListener("click", () => stepPair(-1));
+      document
+        .getElementById("btn-next-pair")
+        .addEventListener("click", () => stepPair(1));
+
+      document
+        .getElementById("chk-diff-only")
+        .addEventListener("change", (e) => {
+          state.diffOnly = e.target.checked;
+          renderFields(activePair());
+        });
+
+      document.getElementById("queue-search").addEventListener("input", (e) => {
+        state.queueQuery = e.target.value;
+        renderQueue();
+      });
+
+      document.querySelectorAll(".qpool-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.queuePool = btn.dataset.qpool;
+          document.querySelectorAll(".qpool-btn").forEach((b) => {
+            b.className =
+              b.dataset.qpool === state.queuePool
+                ? "qpool-btn py-1 rounded-md font-semibold btn-primary"
+                : "qpool-btn py-1 rounded-md font-medium text-slate-600 dark:text-slate-300";
+          });
+          renderQueue();
+        });
+      });
+
+      document
+        .getElementById("field-reason")
+        .addEventListener("input", updateReasonCount);
+
+      document
+        .getElementById("proposal-form")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          const item = activePair();
+          const form = new FormData(event.currentTarget);
+          const payload = {
+            left_source_key: item.left_source_key,
+            right_source_key: item.right_source_key,
+            decision_category: String(form.get("decision_category") || ""),
+            steward_user: String(form.get("steward_user") || "").trim(),
+            approver_user: "",
+            reason: String(form.get("reason") || "").trim(),
+          };
+          const error = document.getElementById("form-error");
+          if (!DECISIONS.includes(payload.decision_category)) {
+            error.textContent =
+              "Hãy chọn 1 danh mục quyết định: same, related, distinct hoặc insufficient.";
+            return;
+          }
+          if (!payload.steward_user) {
+            error.textContent = "Cần nhập tên người đề xuất (steward_user).";
+            return;
+          }
+          if (payload.reason.length < 15) {
+            error.textContent = "Lý do đề xuất cần tối thiểu 15 ký tự.";
+            return;
+          }
+          error.textContent = "";
+          const record = {
+            ...payload,
+            pair_id: item.pair_id,
+            review_state: "PENDING",
+            crosswalk_activated: false,
+            recorded_at: new Date().toISOString(),
+          };
+          const store = readStore();
+          store[storeKey(item)] = record;
+          writeStore(store);
+          document.getElementById("proposal-result").classList.remove("hidden");
+          document.getElementById("proposal-json").textContent = JSON.stringify(
+            schemaPayload(record),
+            null,
+            2,
+          );
+          renderQueue();
+          document.getElementById("pair-state").textContent = "PENDING";
+          showToast(
+            "Đã ghi đề xuất & đồng bộ về Dashboard. Đang chờ Approver duyệt độc lập.",
+          );
+        });
+
+      document.getElementById("btn-clear").addEventListener("click", () => {
+        const item = activePair();
+        const store = readStore();
+        delete store[storeKey(item)];
+        writeStore(store);
+        fillForm(item);
+        renderQueue();
+        document.getElementById("pair-state").textContent =
+          item.review_state || "NEW";
+        showToast("Đã gỡ đề xuất của cặp này.", "warn");
+      });
+
+      window.addEventListener("popstate", applyQuery);
+      window.addEventListener("storage", (e) => {
+        if (e.key === "ai13-theme") applySavedTheme();
+        if (e.key === STORE_KEY) renderPair();
+      });
+
+      document.querySelectorAll("[data-dashboard-link]").forEach((link) => {
+        link.href = dashboardUrl();
+      });
+      document.querySelectorAll("[data-review-link]").forEach((link) => {
+        link.href = reviewUrl();
+      });
+
+      applyQuery();
+      loadApi(false);
+    </script>
+  </body>
+</html>
