@@ -18,6 +18,11 @@ def get_duplicate_candidates():
     records = load_all_csv_records()
     return generate_candidates(records)
 
+@router.get("/candidates/exact")
+def get_exact_duplicate_candidates():
+    records = load_all_csv_records()
+    return generate_candidates(records)
+
 @router.post("/approve")
 def approve_decision(payload: ReviewDecisionRequest):
     if not verify_independent_approver(payload.steward_user, payload.approver_user):

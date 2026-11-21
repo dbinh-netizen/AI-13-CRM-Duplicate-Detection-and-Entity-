@@ -76,6 +76,14 @@ uvicorn main:app --reload           # hoặc: python main.py (nếu main.py đã
 
 Mở http://127.0.0.1:8000/docs để xem và thử API. Mặc định hệ thống tự tạo SQLite tại `data/songnhat_crm.db`. Chạy kiểm thử: `pytest`.
 
+## W04 — Exact Matching Interface
+
+- Contract đầu vào: danh sách normalized records; hàm công khai `generate_exact_candidate_pairs(records)` cũng nhận raw records và tự chuẩn hóa.
+- Contract đầu ra: `{total_records, total_candidates, candidates}`; mỗi candidate gồm `left_source_key`, `right_source_key`, `entity_pool`, `similarity_score`, `proposed_category`, `reasons`, `conflicts`, `review_state`.
+- Exact matching: `GET /api/candidates/exact`.
+- Fuzzy matching: mặc định tắt; `enable_fuzzy=False` trong `compare_pair`.
+- Integration fixture: xem `test_exact_candidate_pair_fixture` trong `tests/test_matching_pipeline.py`.
+
 > Người phụ trách `main.py` và `database.py` kiểm tra lại các lệnh trên trên một máy sạch rồi cập nhật nếu khác.
 
 ---
