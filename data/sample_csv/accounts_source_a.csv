@@ -2,3 +2,14 @@ source_key,source_system,entity_type,legal_name,tax_code,phone,email,address
 ACC-1042,ERP_NORTH,COMPANY,Công ty TNHH Phần mềm FPT,0101248141,0908123456,contact@fpt.com.vn,"Khu Công nghệ cao, TP. Thủ Đức, TP.HCM"
 ACC-2010,ERP_NORTH,COMPANY,Công ty CP Cơ khí Công nghiệp Đại Nam,0314892100,02838991122,sales@dainam-ind.vn,"Quận 12, TP.HCM"
 ACC-3001,ERP_NORTH,COMPANY,Công ty Cổ phần VNG,0303490096,02839623888,info@vng.com.vn,"Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM"
+ACC001,CRM_A,COMPANY,Công ty TNHH Ánh Dương,0312345678,0901234567,contact@anhduong.vn,"12 Nguyễn Huệ, Quận 1, TP.HCM"
+ACC002,CRM_A,COMPANY,Công ty Cổ phần Minh Phát,0109876543,0987654321,info@minhphat.vn,"25 Lê Lợi, Hà Nội"
+ACC003,CRM_A,COMPANY,Công ty TNHH Hưng Thịnh,0301122334,0911222333,kinhdoanh@hungthinh.vn,"45 Điện Biên Phủ, TP.HCM"
+ACC004,CRM_A,COMPANY,Công ty TNHH Đại Phúc,0203344556,0977001122,lienhe@daiphuc.vn,"16 Hùng Vương, Hải Phòng"
+ACC005,CRM_A,COMPANY,Công ty Cổ phần Thành Công,0102233445,0919001100,contact@thanhcong.vn,"70 Giải Phóng, Hà Nội"
+ACC006,CRM_A,COMPANY,Công ty TNHH Phú An,0004567891,0922333444,info@phuan.vn,"31 Nguyễn Trãi, Cần Thơ"
+ACC007,CRM_A,COMPANY,Công ty TNHH Hoàng Gia,0314455667,0905666777,,"55 Pasteur, TP.HCM"
+ACC008,CRM_A,COMPANY,Công ty TNHH Tân Tiến,,,,
+ACC009,CRM_A,COMPANY,Công ty TNHH Đại Phúc,0203344556,0977001122,lienhe@daiphuc.vn,"16 Hùng Vương, Hải Phòng"
+ACC001,CRM_A,COMPANY,Công ty Cổ phần Sao Mai,0399887766,0909998888,info@saomai.vn,"100 Nguyễn Huệ, Quận 1, TP.HCM"
+ERR999,CRM_A,UNKNOWN,,,090abc123,sai-dinh-dang@@mail,

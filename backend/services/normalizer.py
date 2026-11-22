@@ -2,6 +2,7 @@
 import re
 import unicodedata
 
+
 def remove_accents(text: str) -> str:
     if not text:
         return ""
@@ -9,9 +10,11 @@ def remove_accents(text: str) -> str:
     text = "".join(c for c in text if unicodedata.category(c) != "Mn")
     return text.replace("đ", "d")
 
+
 def normalize_phone_vn(phone: str) -> str:
     digits = re.sub(r"[^\d+]", "", str(phone or ""))
     return re.sub(r"^\+?84", "0", digits)
+
 
 def parse_tax_code(tax_code: str) -> dict:
     raw = str(tax_code or "").strip()
@@ -19,8 +22,9 @@ def parse_tax_code(tax_code: str) -> dict:
     return {
         "raw": raw,
         "root": parts[0] if parts else "",
-        "branch": parts[1] if len(parts) > 1 else ""
+        "branch": parts[1] if len(parts) > 1 else "",
     }
+
 
 def enrich_normalized_fields(rec: dict) -> dict:
     raw_name = rec.get("legal_name") or rec.get("full_name") or ""
@@ -32,5 +36,24 @@ def enrich_normalized_fields(rec: dict) -> dict:
         "norm_phone": normalize_phone_vn(rec.get("phone", "")),
         "norm_email": str(rec.get("email") or "").strip().lower(),
         "tax_root": tax["root"],
-        "tax_branch": tax["branch"]
+        "tax_branch": tax["branch"],
     }
+
+
+# --- Hàm tương thích cho intake_processor (KAN-38) ---
+def normalize_text_exact(text: str) -> str:
+    if not text:
+        return ""
+    return " ".join(str(text).strip().lower().split())
+
+
+def normalize_text_no_accent(text: str) -> str:
+    return remove_accents(normalize_text_exact(text))
+
+
+def normalize_phone(phone: str) -> str:
+    return normalize_phone_vn(phone)
+
+
+def normalize_tax_id(tax_id: str) -> str:
+    return str(tax_id or "").strip()

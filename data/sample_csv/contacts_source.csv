@@ -1,3 +1,16 @@
 source_key,source_system,entity_type,full_name,phone,email,company_name,affiliation_dates
 PER-3011,WEB_LEAD,CONTACT,Nguyễn Minh Tuấn,0908123456,tuan.nm@fpt.com.vn,FPT Software HCM,2023-2026
 PER-3088,ZALO_LEAD,CONTACT,Nguyen Minh Tuan,+84908123456,tuan.nm@fpt.com.vn,Công ty TNHH Phần mềm FPT,2023-2026
+CON021,CRM_C,CONTACT,Nguyễn Văn An,0912345678,an.nguyen@gmail.com
+CON022,CRM_C,CONTACT,Trần Thị Bình,0908765432,binh.tran@gmail.com
+CON023,CRM_C,CONTACT,Lê Hoàng Nam,0900111222,nam.le@gmail.com
+CON024,CRM_C,CONTACT,Phạm Thu Hà,0988111222,ha.pham@gmail.com
+CON025,CRM_C,CONTACT,Võ Minh Khang,0902223333,khang.vo@gmail.com
+CON026,CRM_C,CONTACT,Đặng Ngọc Mai,0933444555,mai.dang@gmail.com
+CON027,CRM_C,CONTACT,Nguyễn Thị Lan,0905123456,
+CON028,CRM_C,CONTACT,Bùi Quốc Bảo,0911223344,
+CON029,CRM_C,CONTACT,Đỗ Minh Tâm,,tam.do@gmail.com
+CON030,CRM_C,CONTACT,,0909001122,linh.nguyen@gmail.com
+CON031,CRM_C,CONTACT,,0911002233,tuan.pham@gmail.com
+CON032,CRM_C,CONTACT,,0922003344,thao.le@gmail.com
+CON033,CRM_C,CONTACT,Hoàng Thị Hạnh,,

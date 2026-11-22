@@ -1,16 +1,62 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-.venv/
-venv/
-*.db
-.env
-.DS_Store
+*$py.class
 *.pyc
-.pytest_cache/
-data/*.db
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Databases & local storage
+*.db
+*.db-journal
+*.sqlite
 *.sqlite3
 pgdata/
-.idea/
-Thumbs.db
-node_modules/
+data/*.db
+data/*.sqlite*
+
+# Testing & Benchmark Files (Do not upload to Git)
+tests/
+scripts/
+pytest.ini
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Logs & Temporary files
 *.log
+*.tmp
+*.temp
+*.bak
+
+# Node modules / Cache
+node_modules/
+.cache/
