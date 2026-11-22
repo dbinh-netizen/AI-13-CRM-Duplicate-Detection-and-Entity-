@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from backend.database import Base, engine
 from backend.api.routes import router as api_router
+from backend.api.source_record_routes import router as source_record_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(source_record_router)
 
 @app.get("/")
 def serve_dashboard():
