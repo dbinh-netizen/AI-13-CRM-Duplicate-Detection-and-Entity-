@@ -1,1 +1,10 @@
 pair_id,record_a,record_b,label,note
+GT-001,ACC-1042,ACC-1089,MATCH,Trùng Công ty TNHH Phần mềm FPT (cùng MST 0101248141 và SĐT 0908123456)
+GT-002,ACC-2010,ACC-2015,NON_MATCH,Trụ sở chính Đại Nam (0314892100) vs Chi nhánh Bình Dương (0314892100-001)
+GT-003,PER-3011,PER-3088,MATCH,Trùng Contact Nguyễn Minh Tuấn (không dấu và +84908123456)
+GT-004,ACC-1042,ACC-3001,NON_MATCH,Hai doanh nghiệp độc lập (FPT vs VNG)
+GT-005,ACC001,CUS014,MATCH,Trùng Công ty TNHH Ánh Dương (cùng MST 0312345678 và SĐT 0901234567)
+GT-006,ACC002,CUS016,MATCH,Trùng Công ty Cổ phần Minh Phát (CRM_A vs CRM_B cùng MST 0109876543)
+GT-007,ACC004,CUS020,MATCH,Trùng Công ty TNHH Đại Phúc (CRM_A vs CRM_B cùng MST 0203344556)
+GT-008,ACC006,CUS021,MATCH,Trùng Công ty TNHH Phú An (bảo toàn số 0 đầu MST 0004567891)
+GT-009,ACC004,ACC009,MATCH,Trùng nội bộ nguồn CRM_A (Công ty TNHH Đại Phúc)

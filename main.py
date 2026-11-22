@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from backend.database import Base, engine
 from backend.api.routes import router as api_router
+from backend.api.source_record_routes import router as source_record_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(source_record_router)
 
 @app.get("/")
 def serve_dashboard():
@@ -30,8 +32,13 @@ def serve_dashboard():
     return {"message": "Server đang chạy. Mở /docs để xem API."}
 
 @app.get("/review")
+@app.get("/duplicate_review.html")
 def serve_duplicate_review():
     review_path = Path("frontend/duplicate_review.html")
     if review_path.exists() and review_path.stat().st_size > 0:
         return FileResponse(review_path)
+    return FileResponse(Path("frontend/index.html"))
+
+@app.get("/index.html")
+def serve_dashboard_file():
     return FileResponse(Path("frontend/index.html"))
