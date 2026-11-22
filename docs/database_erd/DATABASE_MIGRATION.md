@@ -71,7 +71,7 @@ def upgrade():
     conn = op.get_bind()
     inspector = sa.inspect(conn)
     existing_tables = inspector.get_table_names()
-    
+
     if "source_records" in existing_tables:
         op.rename_table("source_records", "legacy_source_records")
     if "candidate_pairs" in existing_tables:
@@ -114,8 +114,8 @@ In data migration script `0008_migrate_legacy_data.py`:
 
        -- 1. Matching Run for Migrated Account Pairs (RUNNING state)
        INSERT INTO matching_runs (
-           id, run_code, entity_pool, status, policy_id, 
-           total_candidates, ceiling_breached, started_at, completed_at, 
+           id, run_code, entity_pool, status, policy_id,
+           total_candidates, ceiling_breached, started_at, completed_at,
            executed_by, notes, created_at
        ) VALUES (
            :legacy_matching_run_account_id,
@@ -134,8 +134,8 @@ In data migration script `0008_migrate_legacy_data.py`:
 
        -- 2. Matching Run for Migrated Contact Pairs (RUNNING state)
        INSERT INTO matching_runs (
-           id, run_code, entity_pool, status, policy_id, 
-           total_candidates, ceiling_breached, started_at, completed_at, 
+           id, run_code, entity_pool, status, policy_id,
+           total_candidates, ceiling_breached, started_at, completed_at,
            executed_by, notes, created_at
        ) VALUES (
            :legacy_matching_run_contact_id,
@@ -159,7 +159,7 @@ In data migration script `0008_migrate_legacy_data.py`:
 
 3. **Deterministic Legacy Record Classification & Source Integrity Rules**:
    Every row in `legacy_source_records` is evaluated through the intake engine and mapped to **exactly one final outcome**: `MIGRATED`, `QUARANTINED`, or `REJECTED`.
-   
+
    - **Pre-Validation: Source Key and Source System Validity**:
      - *Missing or Unrecognized Source System*: If `legacy.source_system` is NULL, empty, or not in (`CRM_A`, `CRM_B`, `CRM_C`), mark `QUARANTINED` in `batch_row_results` with reason `INVALID_SOURCE_SYSTEM: Value missing or unmapped in source system registry`.
      - *Missing Source Key*: If `legacy.source_key` is NULL or whitespace, mark `REJECTED` in `batch_row_results` with reason `MISSING_SOURCE_KEY: Persistent identity anchor cannot be established`.
@@ -235,10 +235,10 @@ In data migration script `0008_migrate_legacy_data.py`:
    After all migrated candidate pairs have been inserted into `candidate_pairs`, the migration transaction updates `matching_runs` with the authentic candidate counts and sets status to `COMPLETED`:
    ```sql
    -- Update Account Matching Run metrics
-   UPDATE matching_runs 
+   UPDATE matching_runs
    SET total_candidates = (
-       SELECT COUNT(*) 
-       FROM candidate_pairs 
+       SELECT COUNT(*)
+       FROM candidate_pairs
        WHERE matching_run_id = :legacy_matching_run_account_id
    ),
    status = 'COMPLETED',
@@ -246,10 +246,10 @@ In data migration script `0008_migrate_legacy_data.py`:
    WHERE id = :legacy_matching_run_account_id;
 
    -- Update Contact Matching Run metrics
-   UPDATE matching_runs 
+   UPDATE matching_runs
    SET total_candidates = (
-       SELECT COUNT(*) 
-       FROM candidate_pairs 
+       SELECT COUNT(*)
+       FROM candidate_pairs
        WHERE matching_run_id = :legacy_matching_run_contact_id
    ),
    status = 'COMPLETED',
@@ -266,7 +266,7 @@ Reconciliation operates on the strict mathematical law of **Conservation of Reco
 -- 1. SOURCE RECORDS CONSERVATION & RECONCILIATION (ALL SOURCE & QUARANTINE BATCHES)
 -- ============================================================================
 WITH legacy_source_summary AS (
-    SELECT 
+    SELECT
         COUNT(*) AS total_legacy_rows,
         COUNT(CASE WHEN source_system = 'CRM_A' THEN 1 END) AS legacy_crm_a_rows,
         COUNT(CASE WHEN source_system = 'CRM_B' THEN 1 END) AS legacy_crm_b_rows,
@@ -275,7 +275,7 @@ WITH legacy_source_summary AS (
     FROM legacy_source_records
 ),
 intake_outcomes AS (
-    SELECT 
+    SELECT
         COUNT(CASE WHEN brr.row_status = 'ACCEPTED' THEN 1 END) AS migrated_count,
         COUNT(CASE WHEN brr.row_status = 'QUARANTINED' THEN 1 END) AS quarantined_count,
         COUNT(CASE WHEN brr.row_status = 'REJECTED' THEN 1 END) AS rejected_count,
@@ -285,17 +285,17 @@ intake_outcomes AS (
     WHERE ib.batch_type IN ('LEGACY_MIGRATION', 'UNMAPPED_QUARANTINE')
 ),
 physical_source_verification AS (
-    SELECT 
-        (SELECT COUNT(*) 
-         FROM source_record_versions srv 
-         JOIN import_batches ib ON srv.import_batch_id = ib.id 
+    SELECT
+        (SELECT COUNT(*)
+         FROM source_record_versions srv
+         JOIN import_batches ib ON srv.import_batch_id = ib.id
          WHERE ib.batch_type = 'LEGACY_MIGRATION' AND srv.version_number = 1) AS physical_v1_count,
-        (SELECT COUNT(DISTINCT srv.source_record_id) 
-         FROM source_record_versions srv 
-         JOIN import_batches ib ON srv.import_batch_id = ib.id 
+        (SELECT COUNT(DISTINCT srv.source_record_id)
+         FROM source_record_versions srv
+         JOIN import_batches ib ON srv.import_batch_id = ib.id
          WHERE ib.batch_type = 'LEGACY_MIGRATION' AND srv.version_number = 1) AS distinct_migrated_records
 )
-SELECT 
+SELECT
     l.total_legacy_rows,
     i.total_evaluated_rows,
     i.migrated_count,
@@ -304,20 +304,20 @@ SELECT
     p.physical_v1_count,
     p.distinct_migrated_records,
     -- Assertion 1: Conservation of Source Rows (Total Legacy == Evaluated == Migrated + Quarantined + Rejected)
-    CASE WHEN l.total_legacy_rows = i.total_evaluated_rows 
-              AND l.total_legacy_rows = (i.migrated_count + i.quarantined_count + i.rejected_count) 
+    CASE WHEN l.total_legacy_rows = i.total_evaluated_rows
+              AND l.total_legacy_rows = (i.migrated_count + i.quarantined_count + i.rejected_count)
          THEN 'PASS' ELSE 'FAIL_ROW_CONSERVATION' END AS row_conservation_status,
     -- Assertion 2: Physical Parity (Every MIGRATED row has exactly 1 version 1 and 1 distinct source_record)
-    CASE WHEN i.migrated_count = p.physical_v1_count 
-              AND i.migrated_count = p.distinct_migrated_records 
+    CASE WHEN i.migrated_count = p.physical_v1_count
+              AND i.migrated_count = p.distinct_migrated_records
          THEN 'PASS' ELSE 'FAIL_PHYSICAL_PARITY' END AS physical_integrity_status,
     -- Assertion 3: Quarantine Isolation (Zero quarantined rows leaked into source_records)
-    CASE WHEN (SELECT COUNT(*) 
-               FROM batch_row_results brr 
-               JOIN import_batches ib ON brr.import_batch_id = ib.id 
-               WHERE ib.batch_type IN ('LEGACY_MIGRATION', 'UNMAPPED_QUARANTINE') 
-                 AND brr.row_status = 'QUARANTINED' 
-                 AND brr.source_record_id IS NOT NULL) = 0 
+    CASE WHEN (SELECT COUNT(*)
+               FROM batch_row_results brr
+               JOIN import_batches ib ON brr.import_batch_id = ib.id
+               WHERE ib.batch_type IN ('LEGACY_MIGRATION', 'UNMAPPED_QUARANTINE')
+                 AND brr.row_status = 'QUARANTINED'
+                 AND brr.source_record_id IS NOT NULL) = 0
          THEN 'PASS' ELSE 'FAIL_QUARANTINE_LEAK' END AS quarantine_isolation_status
 FROM legacy_source_summary l, intake_outcomes i, physical_source_verification p;
 
@@ -325,7 +325,7 @@ FROM legacy_source_summary l, intake_outcomes i, physical_source_verification p;
 -- ============================================================================
 -- 2. CANDIDATE PAIRS TWO-WAY PHYSICAL PARITY & CONSERVATION RECONCILIATION
 -- ============================================================================
-WITH 
+WITH
 legacy_pair_summary AS (
     SELECT COUNT(*) AS total_legacy_pairs FROM legacy_candidate_pairs
 ),
@@ -347,22 +347,22 @@ right_counts AS (
 -- COMPANY -> ACCOUNT, BRANCH -> ACCOUNT, CONTACT -> CONTACT.
 -- Rejects/quarantines unknown legacy entity types and does NOT mask inconsistencies with MIN().
 unique_legacy_keys AS (
-    SELECT 
+    SELECT
         source_key,
         MIN(source_system) AS source_system,
         MIN(entity_type) AS raw_legacy_entity_type,
-        CASE 
+        CASE
             WHEN MIN(entity_type) IN ('COMPANY', 'BRANCH') THEN 'ACCOUNT'
             WHEN MIN(entity_type) = 'CONTACT' THEN 'CONTACT'
             ELSE 'UNKNOWN'
         END AS mapped_entity_pool
     FROM legacy_source_records
     GROUP BY source_key
-    HAVING COUNT(*) = 1 
-       AND COUNT(DISTINCT CASE 
+    HAVING COUNT(*) = 1
+       AND COUNT(DISTINCT CASE
                WHEN entity_type IN ('COMPANY', 'BRANCH') THEN 'ACCOUNT'
                WHEN entity_type = 'CONTACT' THEN 'CONTACT'
-               ELSE 'UNKNOWN' 
+               ELSE 'UNKNOWN'
            END) = 1
        AND MIN(entity_type) IN ('COMPANY', 'BRANCH', 'CONTACT')
 ),
@@ -376,7 +376,7 @@ unique_legacy_keys AS (
 -- 5. Subtype mapping assumption: COMPANY and BRANCH are unified into the ACCOUNT pool; subtype distinction
 --    is preserved in record_payload and normalized attributes (requires formal Data Owner sign-off).
 unique_migrated_sources AS (
-    SELECT 
+    SELECT
         ulk.source_key,
         ulk.source_system AS legacy_source_system,
         ulk.raw_legacy_entity_type,
@@ -385,43 +385,43 @@ unique_migrated_sources AS (
         sr.entity_type,
         ss.source_code AS target_source_code
     FROM unique_legacy_keys ulk
-    JOIN source_systems ss 
+    JOIN source_systems ss
         ON ss.source_code = ulk.source_system
        AND ss.entity_type = ulk.mapped_entity_pool
-    JOIN source_records sr 
-        ON sr.source_key = ulk.source_key 
-       AND sr.source_system_id = ss.id 
+    JOIN source_records sr
+        ON sr.source_key = ulk.source_key
+       AND sr.source_system_id = ss.id
        AND sr.entity_type = ulk.mapped_entity_pool
 ),
 
 -- Strict 5-Stage Mutually Exclusive Classification Cascade
 legacy_pair_outcomes AS (
-    SELECT 
+    SELECT
         lcp.id AS legacy_pair_id,
         lcp.left_source_key,
         lcp.right_source_key,
         l_mig.source_record_id AS expected_left_id,
         r_mig.source_record_id AS expected_right_id,
         l_mig.entity_type AS expected_entity_type,
-        CASE 
+        CASE
             -- Precedence 1: Dangling Key (Key does not exist anywhere in legacy sources)
-            WHEN COALESCE(lc.cnt, 0) = 0 OR COALESCE(rc.cnt, 0) = 0 
+            WHEN COALESCE(lc.cnt, 0) = 0 OR COALESCE(rc.cnt, 0) = 0
                 THEN 'PAIR_REJECTED_DANGLING_KEY'
-                
+
             -- Precedence 2: Ambiguous Endpoint (Key matches > 1 legacy records across or within CRMs)
-            WHEN lc.cnt > 1 OR rc.cnt > 1 
+            WHEN lc.cnt > 1 OR rc.cnt > 1
                 THEN 'PAIR_QUARANTINED_AMBIGUOUS_ENDPOINT'
-                
+
             -- Precedence 3: Quarantined Endpoint (Endpoint existed uniquely in legacy, but was quarantined during intake)
-            WHEN l_mig.source_record_id IS NULL OR r_mig.source_record_id IS NULL 
+            WHEN l_mig.source_record_id IS NULL OR r_mig.source_record_id IS NULL
                 THEN 'PAIR_QUARANTINED_ENDPOINT'
-                
+
             -- Precedence 4: Cross-Pool Mismatch (Left and right endpoints belong to different entity pools)
-            WHEN l_mig.entity_type <> r_mig.entity_type 
+            WHEN l_mig.entity_type <> r_mig.entity_type
                 THEN 'PAIR_REJECTED_CROSS_POOL_MISMATCH'
-                
+
             -- Precedence 5: Migrated (Both endpoints unique, migrated, same pool, and candidate_pair verified)
-            WHEN cp.id IS NOT NULL 
+            WHEN cp.id IS NOT NULL
                 AND cp.legacy_pair_id = lcp.id
                 AND cp.matching_run_id = (CASE WHEN l_mig.entity_type = 'ACCOUNT' THEN :legacy_matching_run_account_id ELSE :legacy_matching_run_contact_id END)
                 AND cp.left_source_record_id = LEAST(l_mig.source_record_id, r_mig.source_record_id)
@@ -429,7 +429,7 @@ legacy_pair_outcomes AS (
                 AND cp.entity_type = l_mig.entity_type
                 AND cp.is_migrated_legacy = TRUE
                 THEN 'PAIR_MIGRATED'
-                
+
             -- Internal Discrepancy indicator (Signals unmapped pair; causes immediate transaction rollback)
             ELSE 'PAIR_UNMAPPED_DISCREPANCY'
         END AS terminal_status
@@ -438,14 +438,14 @@ legacy_pair_outcomes AS (
     LEFT JOIN right_counts rc ON rc.source_key = lcp.right_source_key
     LEFT JOIN unique_migrated_sources l_mig ON l_mig.source_key = lcp.left_source_key AND lc.cnt = 1
     LEFT JOIN unique_migrated_sources r_mig ON r_mig.source_key = lcp.right_source_key AND rc.cnt = 1
-    LEFT JOIN candidate_pairs cp 
-        ON cp.legacy_pair_id = lcp.id 
-       AND cp.matching_run_id IN (:legacy_matching_run_account_id, :legacy_matching_run_contact_id) 
+    LEFT JOIN candidate_pairs cp
+        ON cp.legacy_pair_id = lcp.id
+       AND cp.matching_run_id IN (:legacy_matching_run_account_id, :legacy_matching_run_contact_id)
        AND cp.is_migrated_legacy = TRUE
 ),
 
 categorized_outcomes AS (
-    SELECT 
+    SELECT
         COUNT(CASE WHEN terminal_status = 'PAIR_MIGRATED' THEN 1 END) AS pair_migrated_count,
         COUNT(CASE WHEN terminal_status = 'PAIR_QUARANTINED_ENDPOINT' THEN 1 END) AS pair_quarantined_endpoint_count,
         COUNT(CASE WHEN terminal_status = 'PAIR_QUARANTINED_AMBIGUOUS_ENDPOINT' THEN 1 END) AS pair_quarantined_ambiguous_count,
@@ -458,7 +458,7 @@ categorized_outcomes AS (
 
 -- Physical-to-Legacy Scope (Checking all physical candidate_pairs created by migration 0008)
 physical_scope AS (
-    SELECT 
+    SELECT
         cp.id,
         cp.legacy_pair_id,
         cp.matching_run_id,
@@ -478,60 +478,60 @@ physical_scope AS (
 -- Explicitly prevents three-valued logic (3VL) NULL comparison traps from falling into ELSE 0.
 -- Bilaterally asserts endpoint pool consistency and canonical ID ordering.
 physical_endpoint_verification AS (
-    SELECT 
+    SELECT
         ps.id,
         CASE WHEN ps.matched_legacy_id IS NULL THEN 1 ELSE 0 END AS is_orphan,
         CASE WHEN ps.legacy_pair_id IS NULL THEN 1 ELSE 0 END AS is_missing_legacy_id,
-        CASE 
+        CASE
             -- 1. NULL safety: Any endpoint ID or entity_type is NULL in physical pair or expected target
-            WHEN l_mig.source_record_id IS NULL 
+            WHEN l_mig.source_record_id IS NULL
               OR r_mig.source_record_id IS NULL
-              OR ps.left_source_record_id IS NULL 
+              OR ps.left_source_record_id IS NULL
               OR ps.right_source_record_id IS NULL
               OR ps.entity_type IS NULL
               OR l_mig.entity_type IS NULL
               OR r_mig.entity_type IS NULL
                 THEN 1
             -- 2. Pool consistency: Left and right target pools differ, or physical pair pool differs from either endpoint
-            WHEN l_mig.entity_type <> r_mig.entity_type 
-              OR ps.entity_type <> l_mig.entity_type 
-              OR ps.entity_type <> r_mig.entity_type 
+            WHEN l_mig.entity_type <> r_mig.entity_type
+              OR ps.entity_type <> l_mig.entity_type
+              OR ps.entity_type <> r_mig.entity_type
                 THEN 1
             -- 3. Left endpoint mismatch (must strictly match LEAST under canonical ordering)
-            WHEN ps.left_source_record_id <> LEAST(l_mig.source_record_id, r_mig.source_record_id) 
+            WHEN ps.left_source_record_id <> LEAST(l_mig.source_record_id, r_mig.source_record_id)
                 THEN 1
             -- 4. Right endpoint mismatch (must strictly match GREATEST under canonical ordering)
-            WHEN ps.right_source_record_id <> GREATEST(l_mig.source_record_id, r_mig.source_record_id) 
+            WHEN ps.right_source_record_id <> GREATEST(l_mig.source_record_id, r_mig.source_record_id)
                 THEN 1
             -- Valid only when all values are strictly NOT NULL, pools mutually consistent, and canonical order verified
-            ELSE 0 
+            ELSE 0
         END AS is_endpoint_mismatch
     FROM physical_scope ps
     LEFT JOIN unique_migrated_sources l_mig ON l_mig.source_key = ps.left_source_key
     LEFT JOIN unique_migrated_sources r_mig ON r_mig.source_key = ps.right_source_key
 ),
 physical_metrics AS (
-    SELECT 
+    SELECT
         COUNT(*) AS physical_migrated_count,
         COUNT(legacy_pair_id) AS physical_with_legacy_id_count,
         COUNT(DISTINCT legacy_pair_id) AS physical_distinct_legacy_id_count,
         (SELECT SUM(is_orphan) FROM physical_endpoint_verification) AS physical_orphan_count,
         (SELECT SUM(is_endpoint_mismatch) FROM physical_endpoint_verification) AS physical_endpoint_mismatch_count,
-        COUNT(CASE WHEN matching_run_id = :legacy_matching_run_account_id AND entity_type <> 'ACCOUNT' THEN 1 
+        COUNT(CASE WHEN matching_run_id = :legacy_matching_run_account_id AND entity_type <> 'ACCOUNT' THEN 1
                    WHEN matching_run_id = :legacy_matching_run_contact_id AND entity_type <> 'CONTACT' THEN 1 END) AS physical_pool_mismatch_count
     FROM physical_scope
 ),
 
 -- Matching Runs Metric Verification
 run_metrics AS (
-    SELECT 
+    SELECT
         SUM(total_candidates) AS runs_total_candidates,
         COUNT(CASE WHEN status <> 'COMPLETED' THEN 1 END) AS incomplete_runs_count
     FROM matching_runs
     WHERE id IN (:legacy_matching_run_account_id, :legacy_matching_run_contact_id)
 )
 
-SELECT 
+SELECT
     lp.total_legacy_pairs,
     co.total_evaluated_pairs,
     co.pair_migrated_count,
@@ -550,14 +550,14 @@ SELECT
     -- Assertion A (Legacy-to-Physical Parity):
     -- Every PAIR_MIGRATED has exactly 1 physical row with matching endpoints, pool, and legacy_pair_id.
     -- If discrepancy count > 0, this assertion FAILS and triggers immediate ROLLBACK.
-    CASE WHEN co.pair_unmapped_discrepancy_count = 0 
-              AND co.pair_migrated_count = pm.physical_migrated_count 
+    CASE WHEN co.pair_unmapped_discrepancy_count = 0
+              AND co.pair_migrated_count = pm.physical_migrated_count
          THEN 'PASS' ELSE 'FAIL_LEGACY_TO_PHYSICAL' END AS legacy_to_physical_assertion,
 
     -- Assertion B (Physical-to-Legacy Parity & Endpoint Integrity):
     -- Zero orphan migrated pairs, zero duplicate legacy_pair_ids, zero pool mismatches, zero endpoint mismatches.
-    CASE WHEN pm.physical_orphan_count = 0 
-              AND pm.physical_migrated_count = pm.physical_distinct_legacy_id_count 
+    CASE WHEN pm.physical_orphan_count = 0
+              AND pm.physical_migrated_count = pm.physical_distinct_legacy_id_count
               AND pm.physical_pool_mismatch_count = 0
               AND pm.physical_endpoint_mismatch_count = 0
          THEN 'PASS' ELSE 'FAIL_PHYSICAL_TO_LEGACY' END AS physical_to_legacy_assertion,
@@ -568,18 +568,18 @@ SELECT
     CASE WHEN co.pair_unmapped_discrepancy_count = 0
               AND lp.total_legacy_pairs = co.total_evaluated_pairs
               AND lp.total_legacy_pairs = (
-                  co.pair_migrated_count + 
-                  co.pair_quarantined_endpoint_count + 
-                  co.pair_quarantined_ambiguous_count + 
-                  co.pair_rejected_dangling_count + 
+                  co.pair_migrated_count +
+                  co.pair_quarantined_endpoint_count +
+                  co.pair_quarantined_ambiguous_count +
+                  co.pair_rejected_dangling_count +
                   co.pair_rejected_cross_pool_count
               )
          THEN 'PASS' ELSE 'FAIL_PAIR_CONSERVATION' END AS pair_conservation_assertion,
 
     -- Assertion D (Run Parity):
     -- matching_runs.total_candidates must exactly equal physical migrated count and status must be COMPLETED.
-    CASE WHEN rm.runs_total_candidates = pm.physical_migrated_count 
-              AND rm.incomplete_runs_count = 0 
+    CASE WHEN rm.runs_total_candidates = pm.physical_migrated_count
+              AND rm.incomplete_runs_count = 0
          THEN 'PASS' ELSE 'FAIL_RUN_METRICS_PARITY' END AS run_parity_assertion
 
 FROM legacy_pair_summary lp, categorized_outcomes co, physical_metrics pm, run_metrics rm;
