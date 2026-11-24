@@ -51,7 +51,7 @@ from backend.review.security import (
     require_role,
 )
 
-router = APIRouter(prefix="/api/review", tags=["Review Workflow & Maker-Checker Engine"])
+router = APIRouter(prefix="/review", tags=["Review Workflow & Maker-Checker Engine"])
 
 queue_service = ReviewQueueService()
 cluster_service = ClusterService()

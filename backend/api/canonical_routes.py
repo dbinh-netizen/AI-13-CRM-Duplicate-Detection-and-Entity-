@@ -60,22 +60,65 @@ def ingest_source_file(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+
 @router.post("/match-all")
 def run_all_matching_steps(
     db: Session = Depends(get_db),
 ):
-    """Run sequential 4-step matching: A↔A, B↔B, A↔B, C↔C."""
+    """Run sequential 4-step matching: A-A, B-B, A-B, C-C."""
+
     matcher = CanonicalMatchingPipelineService()
+
     try:
         report = matcher.execute_all_matching_steps(db)
+
+        steps = [
+            report.account_internal_a,
+            report.account_internal_b,
+            report.account_cross_ab,
+            report.contact_internal_c,
+        ]
+
+        statuses = [
+            step.status if step is not None else "MISSING"
+            for step in steps
+        ]
+
+        allowed_statuses = {
+            "COMPLETED",
+            "FAILED",
+            "HELD_CEILING_BREACH",
+        }
+
+        if (
+            "FAILED" in statuses
+            or any(
+                status not in allowed_statuses
+                for status in statuses
+            )
+        ):
+            pipeline_status = "FAILED"
+
+        elif "HELD_CEILING_BREACH" in statuses:
+            pipeline_status = "HELD_CEILING_BREACH"
+
+        else:
+            pipeline_status = "SUCCESS"
+
         db.commit()
+
         return {
-            "status": "SUCCESS",
+            "status": pipeline_status,
             "report": report.model_dump(),
         }
+
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
+
 
 
 @router.post("/activate-singletons")

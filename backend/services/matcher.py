@@ -30,12 +30,31 @@ def compare_pair(a: dict, b: dict) -> dict | None:
         score += 15
         reasons.append(f"Trùng Email ({a.get('norm_email')})")
 
-    sim_acc = fuzz.token_sort_ratio(a.get("norm_name_accent", ""), b.get("norm_name_accent", ""))
-    sim_no_acc = fuzz.token_sort_ratio(a.get("norm_name_no_accent", ""), b.get("norm_name_no_accent", ""))
+    
+    # Không coi tên rỗng là bằng chứng trùng khớp.
+    name_acc_a = (a.get("norm_name_accent") or "").strip()
+    name_acc_b = (b.get("norm_name_accent") or "").strip()
+
+    name_no_acc_a = (a.get("norm_name_no_accent") or "").strip()
+    name_no_acc_b = (b.get("norm_name_no_accent") or "").strip()
+
+    sim_acc = 0.0
+    sim_no_acc = 0.0
+
+    if name_acc_a and name_acc_b:
+        sim_acc = fuzz.token_sort_ratio(name_acc_a, name_acc_b)
+
+    if name_no_acc_a and name_no_acc_b:
+        sim_no_acc = fuzz.token_sort_ratio(
+            name_no_acc_a, name_no_acc_b
+        )
+
     name_sim = round(0.6 * sim_acc + 0.4 * sim_no_acc, 1)
+
     if name_sim >= 70:
         score += round((name_sim / 100.0) * 20, 1)
         reasons.append(f"Tương đồng Tên ({name_sim}%)")
+
 
     score = min(99.0, round(score, 1))
     if score < SUSPECTED_THRESHOLD:
