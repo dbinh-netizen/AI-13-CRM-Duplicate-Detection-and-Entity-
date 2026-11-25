@@ -40,7 +40,6 @@ def enrich_normalized_fields(rec: dict) -> dict:
     }
 
 
-# --- Hàm tương thích cho intake_processor (KAN-38) ---
 def normalize_text_exact(text: str) -> str:
     if not text:
         return ""

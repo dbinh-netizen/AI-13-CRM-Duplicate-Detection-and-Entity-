@@ -6,7 +6,6 @@ from backend.services.storage_adapter import StorageAdapter
 
 
 def run_full_ingestion():
-    # Tạo toàn bộ các bảng theo metadata chính thức của backend/models
     Base.metadata.create_all(bind=engine)
 
     sources = [

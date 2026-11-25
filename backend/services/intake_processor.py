@@ -26,7 +26,6 @@ def run_intake_pipeline(
     contract = CSV_CONTRACTS[dataset_type]
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-    # 1. Chống trùng lặp file ở mức batch (Idempotency)
     if processed_hashes and file_hash in processed_hashes:
         return {
             "status": "SKIPPED_IDEMPOTENT",
@@ -47,7 +46,6 @@ def run_intake_pipeline(
             "quarantine_records": [],
         }
 
-    # 2. Đọc CSV giữ nguyên số 0 ở đầu và dấu tiếng Việt
     stream = io.StringIO(file_bytes.decode("utf-8-sig"))
     reader = csv.DictReader(stream)
 
@@ -64,7 +62,6 @@ def run_intake_pipeline(
             continue
         raw_rows.append({"row_anchor": f"{filename}:line_{idx}", "payload": dict(row)})
 
-    # 3. Kiểm tra lỗi nghiêm trọng & xung đột khóa nguồn (Quarantine)
     key_col = contract["key_col"]
     allowed_etypes = contract["allowed_entity_types"]
     grouped_by_key = defaultdict(list)
@@ -146,7 +143,6 @@ def run_intake_pipeline(
                         "raw_payload": it["payload"],
                     })
 
-    # 4. Tạo Valid Raw & Normalized riêng biệt
     valid_records = []
     normalized_records = []
     validators = contract.get("optional_rules", {})
