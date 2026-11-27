@@ -12,13 +12,16 @@ class CanonicalEntity(Base):
         UniqueConstraint("canonical_code", name="uq_canonical_code"),
         UniqueConstraint("id", "entity_type", name="uq_canonical_id_pool"),
         CheckConstraint("entity_pool IN ('ACCOUNT', 'CONTACT')" if False else "entity_type IN ('ACCOUNT', 'CONTACT')", name="chk_canonical_pool"),
-        CheckConstraint("status IN ('ACTIVE', 'MERGED', 'SPLIT', 'ARCHIVED')", name="chk_canonical_status"),
+        CheckConstraint("status IN ('ACTIVE', 'MERGED', 'SPLIT', 'ARCHIVED', 'RETIRED')", name="chk_canonical_status"),
     )
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
     canonical_code = Column(String(100), unique=True, nullable=False, index=True)
     entity_type = Column(String(50), nullable=False, index=True)
     status = Column(String(50), nullable=False, default="ACTIVE")
+    redirect_to_canonical_id = Column(GUIDType, ForeignKey("canonical_entities.id", ondelete="SET NULL"), nullable=True, index=True)
+    retired_at = Column(ISOUtcDateTime, nullable=True)
+    retirement_reason = Column(Text, nullable=True)
     created_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = Column(GUIDType, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

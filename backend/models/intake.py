@@ -67,6 +67,7 @@ class SourceRecord(Base):
         UniqueConstraint("source_system_id", "entity_type", "source_key", name="uq_source_entity_key"),
         UniqueConstraint("id", "entity_type", name="uq_source_rec_id_pool"),
         CheckConstraint("entity_type IN ('ACCOUNT', 'CONTACT')", name="chk_source_rec_entity_type"),
+        CheckConstraint("eligibility_status IN ('eligible', 'held_unknown_type', 'unscorable')", name="chk_source_rec_eligibility"),
     )
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
@@ -77,6 +78,7 @@ class SourceRecord(Base):
     entity_subtype = Column(String(50), nullable=True)
     entity_level = Column(String(50), nullable=True, index=True)
     access_label = Column(String(100), nullable=False, default="internal_sales", index=True)
+    eligibility_status = Column(String(50), nullable=False, default="eligible", index=True)
     status = Column(String(50), nullable=False, default="ACTIVE")
     record_payload = Column(JSON, nullable=True)
     created_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -129,6 +131,7 @@ class SourceIdentifier(Base):
             "identifier_type IN ('TAX_ID', 'PHONE', 'EMAIL', 'PASSPORT', 'NATIONAL_ID', 'WEBSITE', 'OTHER')",
             name="chk_ident_type"
         ),
+        CheckConstraint("valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from", name="chk_ident_temporal_validity"),
     )
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
@@ -139,6 +142,9 @@ class SourceIdentifier(Base):
     jurisdiction = Column(String(50), nullable=True)
     is_primary = Column(Boolean, nullable=False, default=False)
     entity_level = Column(String(50), nullable=True)
+    verification_status = Column(String(50), nullable=True)
+    valid_from = Column(ISOUtcDateTime, nullable=True)
+    valid_to = Column(ISOUtcDateTime, nullable=True)
     created_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 class MatchingRun(Base):

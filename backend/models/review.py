@@ -72,8 +72,9 @@ class ReviewDecision(Base):
     __tablename__ = "review_decisions"
     __table_args__ = (
         UniqueConstraint("review_task_id", name="uq_review_task_decision"),
-        CheckConstraint("proposed_by <> approved_by", name="chk_no_self_approval"),
-        CheckConstraint("status IN ('PENDING', 'APPROVED', 'REJECTED', 'SUPERSEDED')", name="chk_decision_status"),
+        CheckConstraint("approved_by IS NULL OR proposed_by <> approved_by", name="chk_no_self_approval"),
+        CheckConstraint("status IN ('PENDING', 'PROPOSED', 'APPROVED', 'REJECTED', 'SUPERSEDED')", name="chk_decision_status"),
+        CheckConstraint("status <> 'APPROVED' OR (approved_by IS NOT NULL AND approved_at IS NOT NULL)", name="chk_approved_requires_approver"),
     )
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
@@ -81,10 +82,10 @@ class ReviewDecision(Base):
     subject = Column(String(50), nullable=False, default="entity_identity")
     decision_type = Column(String(50), nullable=False)
     proposed_by = Column(GUIDType, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
-    approved_by = Column(GUIDType, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    approved_by = Column(GUIDType, ForeignKey("users.id", ondelete="RESTRICT"), nullable=True, index=True)
     proposed_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    approved_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    status = Column(String(50), nullable=False, default="APPROVED")
+    approved_at = Column(ISOUtcDateTime, nullable=True)
+    status = Column(String(50), nullable=False, default="PROPOSED")
     is_active = Column(Boolean, nullable=False, default=False)
     is_latest = Column(Boolean, nullable=False, default=True)
     decision_rationale = Column(Text, nullable=False)
