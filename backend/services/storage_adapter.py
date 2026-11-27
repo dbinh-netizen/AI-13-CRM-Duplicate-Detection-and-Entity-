@@ -1,6 +1,7 @@
 import json
 import hashlib
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal
@@ -93,9 +94,67 @@ class StorageAdapter:
                     )
                 )
 
-    def save_pipeline_result(self, pipeline_result: dict) -> dict:
+    @staticmethod
+    def validate_batch_manifest(
+        stats: dict,
+        file_hash: str,
+        manifest: Optional[dict] = None,
+    ) -> dict:
         """
-        Lưu kết quả từ run_intake_pipeline() vào DB và trả về gói thống nhất cho FastAPI.
+        Kiểm tra tính đầy đủ của Batch Manifest và Snapshot trước khi commit vào DB.
+        Phát hiện các lỗi:
+        - INCOMPLETE_BATCH: Số dòng thực tế nhận được nhỏ hơn số dòng khai báo trong manifest.
+        - CHECKSUM_MISMATCH: Mã băm file không khớp với manifest.
+        - INCOMPLETE_SNAPSHOT: Snapshot bị đánh dấu chưa hoàn tất (is_complete=False).
+        - ROW_RECONCILIATION_MISMATCH: Tổng accepted + quarantined + rejected != total_received.
+        """
+        manifest = manifest or {}
+        errors = []
+
+        total_received = stats.get("total_received", 0)
+        valid_count = stats.get("valid_count", 0)
+        quarantine_count = stats.get("quarantine_count", 0)
+        rejected_count = stats.get("rejected_count", 0)
+
+        if valid_count + quarantine_count + rejected_count != total_received:
+            errors.append(
+                f"ROW_RECONCILIATION_MISMATCH: received={total_received} != "
+                f"accepted({valid_count}) + quarantined({quarantine_count}) + rejected({rejected_count})"
+            )
+
+        expected_rows = manifest.get("expected_row_count")
+        if expected_rows is not None and total_received != int(expected_rows):
+            errors.append(
+                f"INCOMPLETE_BATCH: expected_row_count={expected_rows}, actual_received={total_received}"
+            )
+
+        expected_checksum = manifest.get("expected_checksum")
+        if expected_checksum and expected_checksum.strip().lower() != file_hash.lower():
+            errors.append(
+                f"CHECKSUM_MISMATCH: expected={expected_checksum}, actual={file_hash}"
+            )
+
+        if manifest.get("is_complete") is False:
+            errors.append("INCOMPLETE_SNAPSHOT: Snapshot marked as incomplete (is_complete=False)")
+
+        return {
+            "is_valid": len(errors) == 0,
+            "is_complete_snapshot": len(errors) == 0,
+            "snapshot_cutoff": manifest.get("snapshot_cutoff") or datetime.now(timezone.utc).isoformat(),
+            "expected_row_count": expected_rows if expected_rows is not None else total_received,
+            "actual_row_count": total_received,
+            "file_checksum": file_hash,
+            "errors": errors,
+        }
+
+    def save_pipeline_result(
+        self,
+        pipeline_result: dict,
+        manifest: Optional[dict] = None,
+    ) -> dict:
+        """
+        Lưu kết quả từ run_intake_pipeline() vào DB, kiểm soát Batch Manifest / Snapshot
+        và trả về gói thống nhất cho FastAPI.
         """
         entity_pool = pipeline_result.get("dataset_type", "ACCOUNT")
         filename = pipeline_result.get("filename", "unknown.csv")
@@ -108,6 +167,8 @@ class StorageAdapter:
         normalized_records = pipeline_result.get("normalized_records", [])
         quarantine_records = pipeline_result.get("quarantine_records", [])
 
+        manifest_check = self.validate_batch_manifest(stats, file_hash, manifest)
+
         if pipeline_result.get("status") == "SKIPPED_IDEMPOTENT":
             logger.info("[INTAKE] Bỏ qua file trùng lặp trong cùng phiên: %s", filename)
             return self._build_handoff_payload(
@@ -119,13 +180,15 @@ class StorageAdapter:
                 valid_records=[],
                 normalized_records=[],
                 quarantine_records=[],
-                db_ops={"inserted": 0, "updated": 0, "quarantined": 0, "skipped": True},
+                db_ops={"inserted": 0, "updated": 0, "quarantined": 0, "rejected": 0, "skipped": True},
+                manifest_report=manifest_check,
             )
 
         norm_map = {item["stable_key"]: item for item in normalized_records}
         inserted = 0
         updated = 0
         quarantined = 0
+        rejected = stats.get("rejected_count", 0)
 
         try:
             first_sys_code = (
@@ -155,23 +218,79 @@ class StorageAdapter:
                     valid_records=[],
                     normalized_records=[],
                     quarantine_records=[],
-                    db_ops={"inserted": 0, "updated": 0, "quarantined": 0, "skipped": True},
+                    db_ops={"inserted": 0, "updated": 0, "quarantined": 0, "rejected": 0, "skipped": True},
+                    manifest_report=manifest_check,
                 )
 
-            batch = ImportBatch(
-                batch_code=batch_code,
-                source_system_id=primary_sys.id,
-                batch_type="CSV_INGESTION",
-                file_name=filename,
-                file_checksum=file_hash,
-                file_size_bytes=file_size,
-                total_rows_received=stats.get("total_received", 0),
-                total_rows_valid=stats.get("valid_count", 0),
-                total_rows_quarantined=stats.get("quarantine_count", 0),
-                total_rows_rejected=0,
-                status="VALIDATING",
-            )
-            self.db.add(batch)
+            # Nếu batch/snapshot không đầy đủ -> ghi nhận batch FAILED để audit và chặn ghi vào source_records
+            if not manifest_check["is_valid"]:
+                error_summary = "; ".join(manifest_check["errors"])
+                logger.error("[INCOMPLETE_BATCH] Từ chối nạp batch '%s': %s", batch_code, error_summary)
+
+                if not existing_batch:
+                    failed_batch = ImportBatch(
+                        batch_code=batch_code,
+                        source_system_id=primary_sys.id,
+                        batch_type="CSV_INGESTION",
+                        file_name=filename,
+                        file_checksum=file_hash,
+                        file_size_bytes=file_size,
+                        total_rows_received=stats.get("total_received", 0),
+                        total_rows_valid=0,
+                        total_rows_quarantined=0,
+                        total_rows_rejected=stats.get("total_received", 0),
+                        status="FAILED",
+                        notes=error_summary,
+                    )
+                    self.db.add(failed_batch)
+                else:
+                    existing_batch.status = "FAILED"
+                    existing_batch.notes = error_summary
+
+                self.db.commit()
+                return self._build_handoff_payload(
+                    batch_code=batch_code,
+                    filename=filename,
+                    entity_pool=entity_pool,
+                    status="FAILED_INCOMPLETE_BATCH",
+                    stats=stats,
+                    valid_records=[],
+                    normalized_records=[],
+                    quarantine_records=[],
+                    db_ops={
+                        "inserted": 0,
+                        "updated": 0,
+                        "quarantined": 0,
+                        "rejected": stats.get("total_received", 0),
+                        "skipped": False,
+                    },
+                    manifest_report=manifest_check,
+                )
+
+            if existing_batch and existing_batch.status == "FAILED":
+                batch = existing_batch
+                batch.total_rows_received = stats.get("total_received", 0)
+                batch.total_rows_valid = stats.get("valid_count", 0)
+                batch.total_rows_quarantined = stats.get("quarantine_count", 0)
+                batch.total_rows_rejected = rejected
+                batch.status = "VALIDATING"
+                batch.notes = json.dumps(manifest_check, ensure_ascii=False)
+            else:
+                batch = ImportBatch(
+                    batch_code=batch_code,
+                    source_system_id=primary_sys.id,
+                    batch_type="CSV_INGESTION",
+                    file_name=filename,
+                    file_checksum=file_hash,
+                    file_size_bytes=file_size,
+                    total_rows_received=stats.get("total_received", 0),
+                    total_rows_valid=stats.get("valid_count", 0),
+                    total_rows_quarantined=stats.get("quarantine_count", 0),
+                    total_rows_rejected=rejected,
+                    status="VALIDATING",
+                    notes=json.dumps(manifest_check, ensure_ascii=False),
+                )
+                self.db.add(batch)
             self.db.flush()
 
             used_row_numbers = set()
@@ -193,6 +312,11 @@ class StorageAdapter:
                     "_provenance": {
                         "row_anchor": valid["row_anchor"],
                         "batch_code": batch_code,
+                        "batch_id": batch_prefix,
+                        "source_system": row_sys_code,
+                        "record_type": entity_pool,
+                        "entity_subtype": entity_subtype,
+                        "source_key": source_key,
                     },
                 }
                 row_checksum = _sha256_json(raw)
@@ -332,8 +456,10 @@ class StorageAdapter:
                     "inserted": inserted,
                     "updated": updated,
                     "quarantined": quarantined,
+                    "rejected": rejected,
                     "skipped": False,
                 },
+                manifest_report=manifest_check,
             )
 
         except Exception as e:
@@ -343,6 +469,86 @@ class StorageAdapter:
         finally:
             if self._owns_session:
                 self.db.close()
+
+    def reconcile_batch_with_db(self, batch_code: str) -> dict:
+        """
+        Đối soát độc lập một batch giữa bảng import_batches, batch_row_results,
+        source_records và source_record_versions trong Database.
+        """
+        session = SessionLocal() if self._owns_session else self.db
+        try:
+            batch = (
+                session.query(ImportBatch)
+                .filter(ImportBatch.batch_code == batch_code)
+                .first()
+            )
+            if not batch:
+                raise ValueError(f"Không tìm thấy batch_code: {batch_code}")
+
+            row_results = (
+                session.query(BatchRowResult)
+                .filter(BatchRowResult.import_batch_id == batch.id)
+                .all()
+            )
+            db_valid_rows = [r for r in row_results if r.row_status == "VALID"]
+            db_quarantined_rows = [r for r in row_results if r.row_status == "QUARANTINED"]
+            db_rejected_rows = [r for r in row_results if r.row_status == "REJECTED"]
+
+            source_records = (
+                session.query(SourceRecord)
+                .filter(SourceRecord.import_batch_id == batch.id)
+                .all()
+            )
+            versions = (
+                session.query(SourceRecordVersion)
+                .filter(SourceRecordVersion.import_batch_id == batch.id)
+                .all()
+            )
+
+            provenance_intact = True
+            missing_provenance_keys = []
+            for rec in source_records:
+                payload = rec.record_payload or {}
+                prov = payload.get("_provenance", {})
+                norm = payload.get("_normalized", {})
+                has_raw = any(k in payload for k in ("legal_name", "full_name"))
+                has_prov = all([
+                    prov.get("batch_code") == batch.batch_code,
+                    prov.get("source_system"),
+                    prov.get("record_type") == rec.entity_type,
+                    prov.get("source_key") == rec.source_key,
+                    bool(norm),
+                    has_raw,
+                ])
+                if not has_prov:
+                    provenance_intact = False
+                    missing_provenance_keys.append(rec.source_key)
+
+            counts_balanced = (
+                batch.total_rows_received
+                == (batch.total_rows_valid + batch.total_rows_quarantined + batch.total_rows_rejected)
+                and len(db_valid_rows) == batch.total_rows_valid
+                and len(db_quarantined_rows) == batch.total_rows_quarantined
+            )
+
+            return {
+                "batch_code": batch.batch_code,
+                "file_name": batch.file_name,
+                "batch_status": batch.status,
+                "received": batch.total_rows_received,
+                "accepted": batch.total_rows_valid,
+                "quarantined": batch.total_rows_quarantined,
+                "rejected": batch.total_rows_rejected,
+                "db_batch_row_results_total": len(row_results),
+                "db_source_records_count": len(source_records),
+                "db_versions_count": len(versions),
+                "counts_balanced": counts_balanced,
+                "provenance_intact": provenance_intact,
+                "missing_provenance_keys": missing_provenance_keys,
+            }
+        finally:
+            if self._owns_session:
+                session.close()
 
     @staticmethod
     def _build_handoff_payload(
@@ -355,6 +561,7 @@ class StorageAdapter:
         normalized_records: list,
         quarantine_records: list,
         db_ops: dict,
+        manifest_report: Optional[dict] = None,
     ) -> dict:
         """Cấu trúc JSON chuẩn để bàn giao trực tiếp cho FastAPI & Matching Engine."""
         return {
@@ -362,6 +569,7 @@ class StorageAdapter:
             "filename": filename,
             "entity_pool": entity_pool,
             "status": status,
+            "manifest_report": manifest_report or {},
             "batch_stats": {
                 **stats,
                 **db_ops,
@@ -377,5 +585,6 @@ class StorageAdapter:
             "inserted": db_ops["inserted"],
             "updated": db_ops["updated"],
             "quarantined": db_ops["quarantined"],
+            "rejected": db_ops.get("rejected", 0),
             "skipped": db_ops["skipped"],
         }
