@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
-    Column, String, Boolean, Text, Float, ForeignKey,
+    Column, String, Boolean, Text, Float, JSON, ForeignKey,
     CheckConstraint, UniqueConstraint, Index
 )
 from backend.models.base import Base, GUIDType, ISOUtcDateTime
@@ -78,14 +78,18 @@ class ReviewDecision(Base):
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
     review_task_id = Column(GUIDType, ForeignKey("review_tasks.id", ondelete="RESTRICT"), nullable=False, index=True)
+    subject = Column(String(50), nullable=False, default="entity_identity")
     decision_type = Column(String(50), nullable=False)
     proposed_by = Column(GUIDType, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
     approved_by = Column(GUIDType, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
     proposed_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     approved_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     status = Column(String(50), nullable=False, default="APPROVED")
+    is_active = Column(Boolean, nullable=False, default=False)
+    is_latest = Column(Boolean, nullable=False, default=True)
     decision_rationale = Column(Text, nullable=False)
     adjudication_notes = Column(Text, nullable=True)
+    evidence_snapshot = Column(JSON, nullable=True)
     created_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 class PairDecisionConstraint(Base):
