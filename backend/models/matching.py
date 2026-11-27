@@ -55,7 +55,7 @@ class CandidatePair(Base):
         UniqueConstraint("matching_run_id", "left_source_record_id", "right_source_record_id", name="uq_cand_pair_run"),
         UniqueConstraint("legacy_pair_id", name="uq_cand_pair_legacy_id"),
         CheckConstraint("left_source_record_id < right_source_record_id", name="chk_cand_pair_order"),
-        CheckConstraint("total_score >= 0.0 AND total_score <= 100.0", name="chk_cand_score_range"),
+        CheckConstraint("total_score IS NULL OR (total_score >= 0.0 AND total_score <= 100.0)", name="chk_cand_score_range"),
         CheckConstraint("entity_type IN ('ACCOUNT', 'CONTACT')", name="chk_cand_pair_pool"),
     )
 
@@ -64,9 +64,12 @@ class CandidatePair(Base):
     left_source_record_id = Column(GUIDType, nullable=False, index=True)
     right_source_record_id = Column(GUIDType, nullable=False, index=True)
     entity_type = Column(String(50), nullable=False, index=True)
-    total_score = Column(Float, nullable=False)
+    total_score = Column(Float, nullable=True)
     decision_tier = Column(String(50), nullable=False)
     proposed_category = Column(String(50), nullable=False)
+    version = Column(Integer, nullable=False, default=1)
+    same_entity_blocked = Column(Boolean, nullable=False, default=False)
+    weak_evidence_only = Column(Boolean, nullable=False, default=False)
     legacy_pair_id = Column(Integer, nullable=True, index=True)
     legacy_reasons_raw = Column(Text, nullable=True)
     is_migrated_legacy = Column(Boolean, nullable=False, default=False)
@@ -108,6 +111,12 @@ class CandidatePairEvidence(Base):
     similarity_score = Column(Float, nullable=True)
     evidence_direction = Column(String(20), nullable=True)
     evidence_weight = Column(Float, nullable=True)
+    method = Column(String(50), nullable=True)
+    sharing = Column(String(50), nullable=True)
+    blocks_same_entity = Column(Boolean, nullable=False, default=False)
+    sufficient_alone = Column(Boolean, nullable=False, default=False)
+    explanation = Column(Text, nullable=True)
+    explanation_source = Column(String(50), nullable=True)
     is_legacy_evidence = Column(Boolean, nullable=False, default=False)
     provenance = Column(String(100), nullable=False, default="PIPELINE_CALCULATED")
     policy_version = Column(String(50), nullable=True)

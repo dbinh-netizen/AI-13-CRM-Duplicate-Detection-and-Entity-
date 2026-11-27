@@ -89,14 +89,18 @@ class EntityRelationship(Base):
     __tablename__ = "entity_relationships"
     __table_args__ = (
         UniqueConstraint("from_canonical_id", "to_canonical_id", "relationship_type", "valid_from", name="uq_entity_relationship_edge"),
-        CheckConstraint("from_canonical_id <> to_canonical_id", name="chk_no_self_relationship"),
+        CheckConstraint("from_canonical_id IS NULL OR to_canonical_id IS NULL OR from_canonical_id <> to_canonical_id", name="chk_no_self_relationship"),
+        CheckConstraint("from_source_record_id IS NULL OR to_source_record_id IS NULL OR from_source_record_id <> to_source_record_id", name="chk_no_self_source_relationship"),
         CheckConstraint("valid_to IS NULL OR valid_to > valid_from", name="chk_rel_temporal_validity"),
         CheckConstraint("status IN ('ACTIVE', 'TERMINATED', 'DISPUTED')", name="chk_rel_status"),
     )
 
     id = Column(GUIDType, primary_key=True, default=uuid.uuid4)
-    from_canonical_id = Column(GUIDType, ForeignKey("canonical_entities.id", ondelete="CASCADE"), nullable=False, index=True)
-    to_canonical_id = Column(GUIDType, ForeignKey("canonical_entities.id", ondelete="CASCADE"), nullable=False, index=True)
+    from_canonical_id = Column(GUIDType, ForeignKey("canonical_entities.id", ondelete="CASCADE"), nullable=True, index=True)
+    to_canonical_id = Column(GUIDType, ForeignKey("canonical_entities.id", ondelete="CASCADE"), nullable=True, index=True)
+    from_source_record_id = Column(GUIDType, ForeignKey("source_records.id", ondelete="CASCADE"), nullable=True, index=True)
+    to_source_record_id = Column(GUIDType, ForeignKey("source_records.id", ondelete="CASCADE"), nullable=True, index=True)
+    affiliation_id = Column(String(100), nullable=True)
     relationship_type = Column(String(50), nullable=False, index=True)
     valid_from = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     valid_to = Column(ISOUtcDateTime, nullable=True)

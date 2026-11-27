@@ -75,6 +75,8 @@ class SourceRecord(Base):
     source_key = Column(String(100), nullable=False, index=True)
     import_batch_id = Column(GUIDType, ForeignKey("import_batches.id", ondelete="RESTRICT"), nullable=False, index=True)
     entity_subtype = Column(String(50), nullable=True)
+    entity_level = Column(String(50), nullable=True, index=True)
+    access_label = Column(String(100), nullable=False, default="internal_sales", index=True)
     status = Column(String(50), nullable=False, default="ACTIVE")
     record_payload = Column(JSON, nullable=True)
     created_at = Column(ISOUtcDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
