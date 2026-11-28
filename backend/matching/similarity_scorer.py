@@ -95,7 +95,7 @@ class ScoringPolicy(BaseModel):
     """Configurable scoring policy governance container."""
 
     policy_name: str = "DEFAULT_SIMILARITY_POLICY"
-    version: str = "1.0-EXPERIMENTAL"
+    version: str = "2.0-IDENTITY-SAFETY-EXPERIMENTAL"
     entity_pool: str = "ACCOUNT"
     weights: Dict[str, float] = Field(default_factory=dict)
     thresholds: Dict[str, float] = Field(default_factory=dict)
@@ -109,7 +109,7 @@ class ScoringPolicy(BaseModel):
 # Default experimental policies with justified initial weights
 DEFAULT_ACCOUNT_SCORING_POLICY = ScoringPolicy(
     policy_name="ACCOUNT_SIMILARITY_POLICY",
-    version="1.0-EXPERIMENTAL",
+    version="2.0-IDENTITY-SAFETY-EXPERIMENTAL",
     entity_pool="ACCOUNT",
     weights={
         "TAX_ID": 0.35,        # Definitive legal anchor in Vietnam
@@ -128,7 +128,7 @@ DEFAULT_ACCOUNT_SCORING_POLICY = ScoringPolicy(
 
 DEFAULT_CONTACT_SCORING_POLICY = ScoringPolicy(
     policy_name="CONTACT_SIMILARITY_POLICY",
-    version="1.0-EXPERIMENTAL",
+    version="2.0-IDENTITY-SAFETY-EXPERIMENTAL",
     entity_pool="CONTACT",
     weights={
         "CONTACT_NAME": 0.40,        # Individual identity
@@ -160,8 +160,10 @@ class PairScoringResult(BaseModel):
     negative_signals: List[str] = Field(default_factory=list)
     missing_attributes: List[str] = Field(default_factory=list)
     conflicts_detected: List[str] = Field(default_factory=list)
+    identity_link_blocked: bool = False
     normalization_policy_version: str = "1.0"
-    scoring_policy_version: str = "1.0-EXPERIMENTAL"
+    rule_version: str = "2.0-IDENTITY-SAFETY-EXPERIMENTAL"
+    scoring_policy_version: str = "2.0-IDENTITY-SAFETY-EXPERIMENTAL"
     evaluated_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
@@ -202,6 +204,18 @@ class SimilarityScorer:
             )
 
         self.normalization_policy_version = normalization_policy_version
+
+    @staticmethod
+    def _identity_role(record: SourceRecordInput) -> Optional[str]:
+        for identifier in record.identifiers:
+            if identifier.identifier_type.upper() == "TAX_ID" and identifier.identifier_value:
+                if identifier.entity_level:
+                    return identifier.entity_level.strip().upper()
+                break
+
+        payload_role = record.raw_payload.get("entity_subtype") or record.raw_payload.get("entity_type")
+        role = str(payload_role or "").strip().upper()
+        return role or None
 
     # -----------------------------------------------------------------------
     # Attribute Scoring Sub-Methods
@@ -265,6 +279,8 @@ class SimilarityScorer:
 
         root_left = extract_tax_root(c_left)
         root_right = extract_tax_root(c_right)
+        left_role = self._identity_role(left)
+        right_role = self._identity_role(right)
 
         # Jurisdiction conflict
         if left_jur != right_jur:
@@ -280,6 +296,48 @@ class SimilarityScorer:
                 left_normalized=f"{left_jur}:{root_left}",
                 right_normalized=f"{right_jur}:{root_right}",
                 explanation=f"Jurisdiction conflict: {left_jur} vs {right_jur}.",
+                conflict_flag=True,
+            )
+
+        if root_left == root_right and root_left and left_role and right_role and left_role != right_role:
+            return AttributeScoreDetail(
+                attribute_name="TAX_ID",
+                status=AttributeStatus.MISMATCH,
+                similarity_score=0.0,
+                weight=weight,
+                weighted_score=0.0,
+                signal_direction=SignalDirection.NEGATIVE,
+                left_raw=left_tax,
+                right_raw=right_tax,
+                left_normalized=f"{left_role}:{root_left}",
+                right_normalized=f"{right_role}:{root_right}",
+                explanation=(
+                    f"Tax ID root is shared, but identity roles differ: {left_role} vs {right_role}."
+                ),
+                conflict_flag=True,
+            )
+
+        if (
+            root_left == root_right
+            and root_left
+            and c_left != c_right
+            and left_role
+            and left_role == right_role
+        ):
+            return AttributeScoreDetail(
+                attribute_name="TAX_ID",
+                status=AttributeStatus.MISMATCH,
+                similarity_score=0.0,
+                weight=weight,
+                weighted_score=0.0,
+                signal_direction=SignalDirection.NEGATIVE,
+                left_raw=left_tax,
+                right_raw=right_tax,
+                left_normalized=c_left,
+                right_normalized=c_right,
+                explanation=(
+                    f"Authoritative Tax IDs differ within the same identity role: {left_role}."
+                ),
                 conflict_flag=True,
             )
 
@@ -752,6 +810,14 @@ class SimilarityScorer:
         conflicts_detected: List[str] = []
 
         is_account = (self.entity_pool == EntityPool.ACCOUNT.value)
+        left_identity_role = self._identity_role(left)
+        right_identity_role = self._identity_role(right)
+        if (
+            left_identity_role
+            and right_identity_role
+            and left_identity_role != right_identity_role
+        ):
+            conflicts_detected.append("ENTITY_LEVEL_MISMATCH")
 
         # 2. Evaluate attributes based on entity pool
         if is_account:
@@ -886,6 +952,8 @@ class SimilarityScorer:
             negative_signals=negative_signals,
             missing_attributes=missing_attributes,
             conflicts_detected=conflicts_detected,
+            identity_link_blocked=bool(conflicts_detected),
             normalization_policy_version=self.normalization_policy_version,
+            rule_version=self.policy.version,
             scoring_policy_version=self.policy.version,
         )

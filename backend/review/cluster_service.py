@@ -120,6 +120,19 @@ class DisjointSetUnion:
         return True
 
 
+def _has_pairwise_candidate_support(
+    member_ids: List[str],
+    pair_scores: Dict[Tuple[str, str], float],
+    min_score_threshold: float,
+) -> bool:
+    for index, left_id in enumerate(member_ids):
+        for right_id in member_ids[index + 1 :]:
+            pair_key = (left_id, right_id) if left_id < right_id else (right_id, left_id)
+            if pair_scores.get(pair_key, 0.0) < min_score_threshold:
+                return False
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Cluster Management Service
 # ---------------------------------------------------------------------------
@@ -157,6 +170,28 @@ class ClusterService:
             )
         ).scalars().all()
 
+        if not pairs:
+            return []
+
+        blocked_pair_ids = set(
+            session.execute(
+                select(CandidatePairEvidence.candidate_pair_id)
+                .join(
+                    CandidatePair,
+                    CandidatePairEvidence.candidate_pair_id == CandidatePair.id,
+                )
+                .where(
+                    and_(
+                        CandidatePair.matching_run_id == run_uuid,
+                        CandidatePair.entity_type == pool,
+                        CandidatePair.total_score >= min_score_threshold,
+                        CandidatePairEvidence.rule_name == "RULE_CONFLICT_DETECTION",
+                        CandidatePairEvidence.evidence_direction == "NEGATIVE",
+                    )
+                )
+            ).scalars().all()
+        )
+        pairs = [pair for pair in pairs if pair.id not in blocked_pair_ids]
         if not pairs:
             return []
 
@@ -201,6 +236,17 @@ class ClusterService:
         for root, member_ids in components.items():
             # A cluster must contain at least 2 records
             if len(member_ids) < 2:
+                continue
+
+            if not _has_pairwise_candidate_support(
+                member_ids,
+                pair_scores,
+                min_score_threshold,
+            ):
+                logger.info(
+                    f"Skipping candidate cluster {root}: at least one member pair "
+                    "has no direct candidate support above the score threshold."
+                )
                 continue
 
             # Check if any member already belongs to an active cluster

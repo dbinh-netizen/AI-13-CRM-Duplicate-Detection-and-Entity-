@@ -917,6 +917,32 @@
         address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
         source_file: "data/sample_csv/accounts_source_a.csv",
       }),
+      "PAIR002-SAO-MAI": rec({
+        record_id: "accounts_source_a.csv:14",
+        source_key: "ACC001",
+        source_system: "CRM_A",
+        entity_type: "COMPANY",
+        entity_pool: "ACCOUNT",
+        legal_name: "Công ty Cổ phần Sao Mai",
+        tax_code: "0399887766",
+        phone: "0909998888",
+        email: "info@saomai.vn",
+        address: "100 Nguyễn Huệ, Quận 1, TP.HCM",
+        source_file: "data/sample_csv/accounts_source_a.csv",
+      }),
+      "PAIR002-ANH-DUONG": rec({
+        record_id: "accounts_source_b.csv:4",
+        source_key: "CUS014",
+        source_system: "CRM_B",
+        entity_type: "COMPANY",
+        entity_pool: "ACCOUNT",
+        legal_name: "CONG TY TNHH ANH DUONG",
+        tax_code: "0312345678",
+        phone: "0901 234 567",
+        email: "CONTACT@ANHDUONG.VN",
+        address: "12 Nguyen Hue, Quan 1, TP.HCM",
+        source_file: "data/sample_csv/accounts_source_b.csv",
+      }),
     };
 
     function rec(row) {
@@ -977,8 +1003,10 @@
         aliases: [],
         ...spec,
         id: spec.pair_id,
-        left: RAW_RECORDS[spec.left_source_key],
-        right: RAW_RECORDS[spec.right_source_key],
+        left:
+          RAW_RECORDS[spec.left_record_key || spec.left_source_key],
+        right:
+          RAW_RECORDS[spec.right_record_key || spec.right_source_key],
       };
     }
 
@@ -1031,37 +1059,33 @@
       }),
       pair({
         pair_id: "PAIR-002",
-        aliases: ["PAIR-ACC-02", "ACC-ERP-1055"],
-        left_source_key: "ACC-ERP-1055",
-        right_source_key: "ACC-ERP-1042",
+        aliases: ["PAIR-ACC-02", "ACC001", "CUS014"],
+        left_record_key: "PAIR002-SAO-MAI",
+        right_record_key: "PAIR002-ANH-DUONG",
+        left_record_id: "accounts_source_a.csv:14",
+        right_record_id: "accounts_source_b.csv:4",
+        left_source_key: "ACC001",
+        right_source_key: "CUS014",
         entity_pool: "ACCOUNT",
-        similarity_score: 82,
-        proposed_category: "RELATED_BUT_DISTINCT",
-        suggested_decision: "related",
+        similarity_score: 0,
+        proposed_category: "DISTINCT",
+        suggested_decision: "distinct",
+        conflict_flags: ["AUTHORITATIVE_IDENTIFIER_CONFLICT"],
+        identity_link_blocked: true,
+        identity_link_activated: false,
+        rule_version: "2.0-IDENTITY-SAFETY",
         evidence: [
           ev(
-            "positive",
-            "Cùng MST gốc",
-            "tax_root 0314892100 xuất hiện ở cả trụ sở và nhà máy.",
-            "parse_tax_code · tax_root",
-          ),
-          ev(
-            "positive",
-            "Tổng đài dùng chung",
-            "norm_phone 02838112233 trùng với công ty mẹ.",
-            "normalizer.normalize_phone_vn",
+            "negative",
+            "Mã số thuế khác nhau",
+            "0399887766 và 0312345678 thuộc hai doanh nghiệp khác nhau.",
+            "PAIR-002 · RULE_TAX_ID · 2.0-IDENTITY-SAFETY",
           ),
           ev(
             "negative",
-            "Khác mã chi nhánh",
-            "Bên trái có tax_branch 001. Matcher gắn xung đột PARENT_BRANCH_RELATIONSHIP.",
-            "matcher.compare_pair · conflicts",
-          ),
-          ev(
-            "negative",
-            "Khác loại thực thể và địa bàn",
-            "BRANCH tại VSIP Bình Dương so với COMPANY tại Tân Phú. Không được gộp.",
-            "entity_type · address",
+            "Số điện thoại khác nhau",
+            "0909998888 và 0901 234 567 không khớp sau chuẩn hóa.",
+            "PAIR-002 · RULE_PHONE · 2.0-IDENTITY-SAFETY",
           ),
         ],
       }),
@@ -1491,7 +1515,12 @@
     }
 
     function storeKey(item) {
-      return [item.left_source_key, item.right_source_key].sort().join("|");
+      return [
+        item.left_record_id || item.left_source_key,
+        item.right_record_id || item.right_source_key,
+      ]
+        .sort()
+        .join("|");
     }
 
     function savedFor(item) {
@@ -1515,6 +1544,16 @@
       const params = new URLSearchParams(location.search);
       const id =
         params.get("id") || params.get("pair_id") || params.get("pair");
+      const leftRecordId = params.get("left_record_id");
+      const rightRecordId = params.get("right_record_id");
+      if (leftRecordId && rightRecordId) {
+        const byRecordIds = pairs.find(
+          (item) =>
+            item.left_record_id === leftRecordId &&
+            item.right_record_id === rightRecordId,
+        );
+        if (byRecordIds) return { pair: byRecordIds, missing: false };
+      }
       const left = params.get("left") || params.get("left_source_key");
       const right = params.get("right") || params.get("right_source_key");
       if (left && right) {
@@ -1892,8 +1931,9 @@
           : candidatesJson.candidates || [];
 
         const byKey = {};
+        const byRecordId = {};
         rawRecords.forEach((row) => {
-          byKey[row.source_key] = enrich({
+          const enrichedRecord = enrich({
             ...row,
             entity_pool:
               row.entity_type === "CONTACT" ? "CONTACT" : "ACCOUNT",
@@ -1902,6 +1942,8 @@
                 ? "contacts_source.csv"
                 : "accounts_source_*.csv",
           });
+          byKey[row.source_key] = enrichedRecord;
+          if (row.record_id) byRecordId[row.record_id] = enrichedRecord;
         });
 
         rawCandidates.forEach((candidate) => {
@@ -1913,47 +1955,66 @@
                 : candidate.proposed_category === "DISTINCT"
                   ? "distinct"
                   : "insufficient";
+          const candidateEvidence =
+            Array.isArray(candidate.evidence) && candidate.evidence.length
+                ? candidate.evidence.map((item) =>
+                    ev(
+                      String(item.direction || "NEUTRAL").toLowerCase(),
+                      item.attribute || "MATCHING_EVIDENCE",
+                      item.explanation || "",
+                      `rule ${item.rule_version || candidate.rule_version || "unknown"}`,
+                    ),
+                  )
+                : [
+                    ...(candidate.reasons || []).map((text) =>
+                      ev(
+                        "positive",
+                        text,
+                        "Matcher sinh bằng chứng này từ hai bản ghi đã chuẩn hóa.",
+                        "GET /api/candidates · backend/services/matcher.py",
+                      ),
+                    ),
+                    ...(candidate.conflict_flags || candidate.conflicts || []).map((text) =>
+                      ev(
+                        "negative",
+                        text,
+                        "Xung đột này chặn kết luận same.",
+                        "GET /api/candidates · conflicts",
+                      ),
+                    ),
+                  ];
           const incoming = {
-            pair_id: `API-${candidate.left_source_key}-${candidate.right_source_key}`,
+            pair_id: `API-${candidate.left_record_id || candidate.left_source_key}-${candidate.right_record_id || candidate.right_source_key}`,
             aliases: [candidate.left_source_key, candidate.right_source_key],
+            left_record_id: candidate.left_record_id,
+            right_record_id: candidate.right_record_id,
             left_source_key: candidate.left_source_key,
             right_source_key: candidate.right_source_key,
             entity_pool: candidate.entity_pool || "ACCOUNT",
             similarity_score: candidate.similarity_score,
             proposed_category: candidate.proposed_category,
             review_state: candidate.review_state || "NEW",
+            conflict_flags: candidate.conflict_flags || candidate.conflicts || [],
+            rule_version: candidate.rule_version,
+            identity_link_blocked: Boolean(candidate.identity_link_blocked),
+            identity_link_activated: false,
             origin: "api",
             suggested_decision: suggested,
             left:
+              byRecordId[candidate.left_record_id] ||
               byKey[candidate.left_source_key] ||
               enrich({
                 source_key: candidate.left_source_key,
                 legal_name: candidate.left_source_key,
               }),
             right:
+              byRecordId[candidate.right_record_id] ||
               byKey[candidate.right_source_key] ||
               enrich({
                 source_key: candidate.right_source_key,
                 legal_name: candidate.right_source_key,
               }),
-            evidence: [
-              ...(candidate.reasons || []).map((text) =>
-                ev(
-                  "positive",
-                  text,
-                  "Matcher sinh bằng chứng này từ hai bản ghi đã chuẩn hóa.",
-                  "GET /api/candidates · backend/services/matcher.py",
-                ),
-              ),
-              ...(candidate.conflicts || []).map((text) =>
-                ev(
-                  "negative",
-                  text,
-                  "Xung đột này chặn kết luận same.",
-                  "GET /api/candidates · conflicts",
-                ),
-              ),
-            ],
+            evidence: candidateEvidence,
           };
           const index = pairs.findIndex(
             (item) => storeKey(item) === storeKey(incoming),

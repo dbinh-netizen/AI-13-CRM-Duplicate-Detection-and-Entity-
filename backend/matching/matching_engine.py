@@ -81,7 +81,7 @@ class MatchingRunRequest(BaseModel):
     max_group_size: int = 500
     actor_username: str = "system_matching_pipeline"
     normalization_policy_version: str = "1.0"
-    scoring_policy_version: str = "1.0-EXPERIMENTAL"
+    scoring_policy_version: str = "2.0-IDENTITY-SAFETY-EXPERIMENTAL"
     scoring_policy: Optional[ScoringPolicy] = None
 
 
@@ -426,7 +426,7 @@ class MatchingEngine:
             builder = EvidenceBuilder(
                 entity_pool=pool,
                 normalization_policy_version=request.normalization_policy_version,
-                scoring_policy_version=request.scoring_policy_version,
+                scoring_policy_version=scorer.policy.version,
             )
             evidence_packages: List[EvidencePackage] = []
 
