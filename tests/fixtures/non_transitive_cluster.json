@@ -1,0 +1,9 @@
+{
+  "members": ["A", "B", "C"],
+  "candidate_pairs": [
+    {"left": "A", "right": "B", "score": 93.0},
+    {"left": "B", "right": "C", "score": 91.0}
+  ],
+  "missing_direct_pair": ["A", "C"],
+  "minimum_score": 60.0
+}

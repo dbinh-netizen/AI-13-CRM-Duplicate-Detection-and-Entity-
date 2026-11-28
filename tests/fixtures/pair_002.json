@@ -1,0 +1,44 @@
+{
+  "pair_id": "PAIR-002",
+  "reported_pair": {
+    "left_record_id": "accounts_source_a.csv:14",
+    "right_record_id": "accounts_source_b.csv:4",
+    "reported_score": 99,
+    "reported_category": "MATCH"
+  },
+  "records": [
+    {
+      "record_id": "accounts_source_a.csv:5",
+      "source_key": "ACC001",
+      "source_system": "CRM_A",
+      "entity_type": "COMPANY",
+      "legal_name": "Công ty TNHH Ánh Dương",
+      "tax_code": "0312345678",
+      "phone": "0901234567",
+      "email": "contact@anhduong.vn",
+      "address": "12 Nguyễn Huệ, Quận 1, TP.HCM"
+    },
+    {
+      "record_id": "accounts_source_a.csv:14",
+      "source_key": "ACC001",
+      "source_system": "CRM_A",
+      "entity_type": "COMPANY",
+      "legal_name": "Công ty Cổ phần Sao Mai",
+      "tax_code": "0399887766",
+      "phone": "0909998888",
+      "email": "info@saomai.vn",
+      "address": "100 Nguyễn Huệ, Quận 1, TP.HCM"
+    },
+    {
+      "record_id": "accounts_source_b.csv:4",
+      "source_key": "CUS014",
+      "source_system": "CRM_B",
+      "entity_type": "COMPANY",
+      "legal_name": "CONG TY TNHH ANH DUONG",
+      "tax_code": "0312345678",
+      "phone": "0901 234 567",
+      "email": "CONTACT@ANHDUONG.VN",
+      "address": "12 Nguyen Hue, Quan 1, TP.HCM"
+    }
+  ]
+}

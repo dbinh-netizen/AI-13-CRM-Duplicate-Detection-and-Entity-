@@ -42,6 +42,13 @@ data/*.sqlite*
 
 # Testing & Benchmark Files (Do not upload to Git)
 tests/
+!/tests/
+tests/*
+!/tests/fixtures/
+tests/fixtures/*
+!/tests/test_matching_safety.py
+!/tests/fixtures/pair_002.json
+!/tests/fixtures/non_transitive_cluster.json
 scripts/
 pytest.ini
 .pytest_cache/

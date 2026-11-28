@@ -31,7 +31,7 @@ from backend.canonical.constants import CanonicalStatus, MembershipStatus
 from backend.models.canonical import CanonicalEntity, CanonicalMembership
 from backend.models.governance import AuditEvent
 from backend.models.intake import SourceRecord, SourceSystem
-from backend.models.matching import CandidatePair
+from backend.models.matching import CandidatePair, CandidatePairEvidence
 from backend.models.review import CandidateCluster, CandidateClusterMember, ReviewDecision, ReviewTask
 
 logger = logging.getLogger(__name__)
@@ -156,6 +156,7 @@ class CanonicalActivationService:
             if not pair:
                 raise ValueError(f"CandidatePair '{task.candidate_pair_id}' not found.")
 
+            self._assert_identity_safe_pair(session, pair)
             res = self._activate_pair_records(
                 session=session,
                 record_id_a=pair.left_source_record_id,
@@ -185,6 +186,7 @@ class CanonicalActivationService:
             ).scalars().all()
 
             record_ids = [m.source_record_id for m in members]
+            self._assert_identity_safe_cluster(session, cluster, record_ids)
             res = self._activate_cluster_records(
                 session=session,
                 record_ids=record_ids,
@@ -197,6 +199,63 @@ class CanonicalActivationService:
 
         session.flush()
         return results
+
+    @staticmethod
+    def _assert_identity_safe_pair(session: Session, pair: CandidatePair) -> None:
+        blocking_evidence = session.execute(
+            select(CandidatePairEvidence.id)
+            .where(
+                and_(
+                    CandidatePairEvidence.candidate_pair_id == pair.id,
+                    CandidatePairEvidence.evidence_direction == "NEGATIVE",
+                    or_(
+                        CandidatePairEvidence.field_name == "tax_id",
+                        CandidatePairEvidence.rule_name == "RULE_CONFLICT_DETECTION",
+                    ),
+                )
+            )
+            .limit(1)
+        ).scalar_one_or_none()
+        if blocking_evidence:
+            raise ValueError(
+                f"CandidatePair '{pair.id}' cannot activate an identity link: "
+                "blocking identifier or identity conflict evidence is present."
+            )
+
+    def _assert_identity_safe_cluster(
+        self,
+        session: Session,
+        cluster: CandidateCluster,
+        record_ids: List[UUID],
+    ) -> None:
+        if len(record_ids) < 2:
+            return
+
+        record_id_set = set(record_ids)
+        pairs = session.execute(
+            select(CandidatePair).where(
+                and_(
+                    CandidatePair.matching_run_id == cluster.matching_run_id,
+                    CandidatePair.entity_type == cluster.entity_pool,
+                    CandidatePair.left_source_record_id.in_(record_id_set),
+                    CandidatePair.right_source_record_id.in_(record_id_set),
+                )
+            )
+        ).scalars().all()
+        pair_map = {
+            (pair.left_source_record_id, pair.right_source_record_id): pair
+            for pair in pairs
+        }
+
+        for index, left_id in enumerate(sorted(record_id_set)):
+            for right_id in sorted(record_id_set)[index + 1 :]:
+                pair = pair_map.get((left_id, right_id))
+                if pair is None:
+                    raise ValueError(
+                        "CandidateCluster cannot activate an identity link: "
+                        f"there is no direct candidate pair for {left_id} and {right_id}."
+                    )
+                self._assert_identity_safe_pair(session, pair)
 
     def _activate_pair_records(
         self,

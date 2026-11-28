@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-from sqlalchemy import select, and_, desc
+from sqlalchemy import select, and_, desc, or_
 from sqlalchemy.orm import Session
 
 from backend.models.access_control import User, Role, UserRole
@@ -132,22 +132,26 @@ class ProposalService:
             ).scalar_one_or_none()
 
             if pair:
-                # Check for severe negative/mismatch evidence on Tax ID
+                # Tax ID evidence uses normalized lowercase field names; conflict
+                # evidence also includes entity-role and other identity guardrails.
                 mismatch_tax = session.execute(
                     select(CandidatePairEvidence)
                     .where(
                         and_(
                             CandidatePairEvidence.candidate_pair_id == pair.id,
-                            CandidatePairEvidence.field_name == "TAX_ID",
                             CandidatePairEvidence.evidence_direction == "NEGATIVE",
+                            or_(
+                                CandidatePairEvidence.field_name == "tax_id",
+                                CandidatePairEvidence.rule_name == "RULE_CONFLICT_DETECTION",
+                            ),
                         )
                     )
                 ).scalars().all()
 
                 if mismatch_tax:
                     raise ValueError(
-                        "Severe Tax ID Conflict Detected: Records have conflicting Tax Codes. "
-                        "Proposal type DUPLICATE is prohibited by Business Rule BR-01. "
+                        "Identity conflict detected: negative authoritative identifier or "
+                        "identity-role evidence prohibits a DUPLICATE proposal by Business Rule BR-01. "
                         "Please select RELATED or DISTINCT."
                     )
 

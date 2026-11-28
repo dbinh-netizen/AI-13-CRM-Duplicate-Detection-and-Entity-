@@ -92,7 +92,7 @@ class EvidenceBuilder:
         self,
         entity_pool: str = "ACCOUNT",
         normalization_policy_version: str = "1.0",
-        scoring_policy_version: str = "1.0-EXPERIMENTAL",
+        scoring_policy_version: str = "2.0-IDENTITY-SAFETY-EXPERIMENTAL",
     ):
         """
         Initialize the Evidence Builder.
